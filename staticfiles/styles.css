@@ -1,0 +1,157 @@
+/* Define variables for consistent colors */
+:root {
+    --color-black: #000000;
+    --color-dark-grey: #333333;
+    --color-medium-grey: #888888;
+    --color-light-grey: #f2f2f2;
+    --color-white: #ffffff;
+}
+
+body {
+    /* Prioritize Helvetica Neue UltraLight*/
+    font-family: "Helvetica Neue UltraLight", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 300; 
+    background-color: var(--color-white);
+    color: var(--color-dark-grey); /* Main text color */
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    line-height: 1.6; 
+    -webkit-font-smoothing: antialiased; 
+    -moz-osx-font-smoothing: grayscale; 
+}
+
+/* Adjust body/content to account for fixed nav */
+body {
+    padding-top: 60px; /* Space for the fixed navigation bar */
+}
+
+nav {
+    background-color: var(--color-black);
+    padding: 0.8rem 0;
+    width: 100%;
+    position: fixed; /* Fixes nav to top */
+    top: 0;
+    left: 0;
+    z-index: 1000; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Vertically align nav items */
+}
+
+nav li {
+    margin: 0 1.5rem; /* More spacing between links for a cleaner look */
+}
+
+nav a {
+    color: var(--color-white);
+    text-decoration: none;
+    font-weight: 400; 
+    font-size: 1rem;
+    padding: 0.2rem 0; 
+    transition: color 0.3s ease-in-out; /* Smooth transition for hover */
+}
+
+nav a:hover {
+    color: var(--color-medium-grey); /* Subtle change on hover */
+}
+
+h1 {
+    font-size: 3rem; 
+    font-weight: 200; /* UltraLight weight for headings */
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-black);
+}
+
+h2 {
+    font-size: 2.2rem;
+    font-weight: 200;
+    margin-top: 2rem;
+    margin-bottom: 0.8rem;
+    color: var(--color-dark-grey);
+}
+
+p {
+    font-size: 1.2rem; 
+    margin: 0.8rem auto; /* Auto horizontal margin for centering */
+    max-width: 700px; 
+    color: var(--color-dark-grey);
+}
+
+p:first-of-type {
+    font-style: italic;
+    font-weight: 200; /* Keep it light */
+    max-width: 600px;
+}
+
+p.quote-author { /* Added a class for specific author styling if needed */
+    font-size: 1rem;
+    color: var(--color-medium-grey); 
+    margin-top: 0.5rem;
+}
+
+a {
+    color: var(--color-dark-grey); 
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+}
+
+a:hover {
+    color: var(--color-medium-grey); 
+    text-decoration: underline; 
+}
+
+/* Specific styles for images */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px; /* Slightly rounded corners for a modern look */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Soft shadow for depth */
+    margin-top: 2rem; /* Space above image */
+    margin-bottom: 2rem; /* Space below image */
+}
+
+ul {
+    list-style: none; /* Remove default bullet points */
+    padding: 0;
+    margin: 1.5rem auto;
+    max-width: 800px; 
+}
+
+li {
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-light-grey); /* Subtle line separator */
+    color: var(--color-dark-grey);
+}
+
+li:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+/* Container for quote/image */
+div {
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 800px; 
+}
+
+/* Specific styling for the main quote block on quote.html */
+.quote-container {
+    background-color: var(--color-white);
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    margin-top: 50px;
+}
+.quote-container p {
+    font-weight: 200; 
+}
