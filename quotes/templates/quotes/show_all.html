@@ -1,0 +1,32 @@
+<!--show_all.html-->
+{% extends 'quotes/base.html' %}
+{% load static %}
+{% block content %}
+<div>
+        <h1>
+            Quotes
+        </h1>
+        <p>All the quotes used from "quotefancy.com"</p>
+        <ul>
+                {% for q in quotes %}
+                    <li>"{{ q.text }}" - {{ q.author }}</li>
+                {% endfor %}
+            
+            </ul>
+
+        <h2>
+            Images
+        </h2>
+        <p>All the images used from 'gettyimages.com'.</p>
+        <ul>
+                {% for image_path in images %}
+                    <li>
+                        <img src="{% static image_path %}" alt="Steve Jobs" width="100"> 
+                    </li>
+                {% endfor %}
+            </ul>
+
+
+    </div>
+
+{% endblock %}

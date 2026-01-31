@@ -1,0 +1,22 @@
+<!-- base.html -->
+{% load static %}
+<html>
+    <head>
+        <title>Steve Jobs & His Quotes </title>
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
+    </head>
+    <body>
+
+        <nav>
+            <ul>
+                <li><a href="{% url 'quote' %}">QUOTE</a></li>
+                <li><a href="{% url 'about' %}">ABOUT</a></li>
+                <li><a href="{% url 'show_all' %}">SHOW ALL</a></li>
+            </ul>
+        </nav>
+
+        {% block content %}
+        {% endblock %}
+
+    </body>
+</html>
