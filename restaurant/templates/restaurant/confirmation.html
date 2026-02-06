@@ -1,0 +1,20 @@
+<!--confirmation.html; Order confirmation message.-->
+
+{% extends 'restaurant/base.html' %}
+
+{% block content %}
+<div>
+    <h1> Order Confirmation </h1>
+
+    <p>Thank you, {{Name}}!</p>
+
+    <p>Your order has been placed.</p>
+
+    <p> {{Nihari}}.<p>
+
+    <p> The order will be ready in <strong>{{minutes}} minutes</strong> by {{ready_time}}.</p>
+
+    <p>
+
+</div>
+{% endblock %}

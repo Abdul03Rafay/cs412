@@ -1,0 +1,84 @@
+<!--order.html; food ordering page, will display the order form.-->
+{% extends 'restaurant/base.html' %}
+{% load static %}
+{% block content %}
+<div>
+<h1>Order Form</h1>
+
+<p>"Today's menu of the day is : <strong>{{ Menu_of_the_day }} </strong> . Get an extra 20% off!"</p>
+
+<form action="{% url 'submit' %}" method="POST">
+        {% csrf_token %}
+        
+        <div>
+                <img src="{% static menuitem1 %}" alt="nihari.jpg" width="300">
+        
+                <div>
+                        $18.99 — Nihari (Slow cooked beef stew) : <input type="checkbox" name="Nihari">
+                        
+                        <div>
+                                Garnishes :   Ginger: <input type="checkbox" name="Ginger">
+                                Lemon Slices: <input type="checkbox" name="Lemon">
+                                Coriander: <input type="checkbox" name="Coriander">
+                        </div>
+                </div>
+        </div>
+
+        <div>
+                <img src="{% static menuitem2 %}" alt="biryani.jpg" width="300">
+        
+                <div>
+                        $12.99 — Biryani (Slow cooked steamed rice with lamb, herbs and spices) : <input type="checkbox" name="Biryani">
+                        
+                        <div>
+                                Serving Size :  Small: <input type="checkbox" name="Small">
+                                (+ $2.99) Medium: <input type="checkbox" name="Medium">
+                                (+ $4.99) Large: <input type="checkbox" name="Large">
+                        </div>
+                </div>
+        </div>
+
+        <div>
+                <img src="{% static menuitem3 %}" alt="bread.jpeg" width="300">
+        
+                <div>
+                        $4.99 — Sheermal Bread: <input type="checkbox" name="Sheermal">
+                        
+                        <div>
+                                Order of : 1 piece: <input type="checkbox" name="S1">
+                                (+ $2.99) 3 pieces: <input type="checkbox" name="S3">
+                                (+ $4.99) 5 pieces: <input type="checkbox" name="S5">
+                        </div>
+                </div>
+        </div>
+
+        <div>
+                <img src="{% static menuitem4 %}" alt="barfi.jpg" width="300">
+        
+                <div>
+                        $1.99 — Barfi (sweet dairy based fudge-like dessert): <input type="checkbox" name="Barfi">
+                        
+                        <div>
+                                Order of : 1 piece: <input type="checkbox" name="B1">
+                                (+ $1.99) 3 pieces: <input type="checkbox" name="B3">
+                                (+ $3.99) 5 pieces: <input type="checkbox" name="B5">
+                        </div>
+                </div>
+        </div>
+
+        <div>
+                Special instructions: <input type="text", name="Special_instructions">
+        </div>
+
+        <div>
+                Name: <input type="text" required, name="Name">
+                Phone: <input type="tel",  name="Phone">
+                Email: <input type="email", name="Email">
+        </div>
+
+        <input type="submit">
+
+</form>
+
+</div>
+{% endblock %}

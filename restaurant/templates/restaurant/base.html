@@ -1,0 +1,26 @@
+<!--base.html; a base page that will provide header and navigation.-->
+{% load static %}
+
+<html>
+        <head>
+                <title>Place your order!</title>
+                <link rel="stylesheet" href="{% static 'styles.css' %}">
+        </head>
+
+        <nav>
+            <ul>
+                <li><a href="{% url 'main' %}">Main</a> </li>
+                <li><a href="{% url 'order' %}">Order</a> </li>
+            </ul>
+
+        </nav>
+
+        <body>
+
+            {% block content %}
+            {% endblock %}
+
+            <!-- <hr> 
+             The current time is {{current_time}}.-->
+        </body>
+</html>
