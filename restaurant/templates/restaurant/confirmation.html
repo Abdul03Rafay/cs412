@@ -6,15 +6,31 @@
 <div>
     <h1> Order Confirmation </h1>
 
-    <p>Thank you, {{Name}}!</p>
+    <p>Thank you, <strong>{{ name }}</strong>!</p>
 
-    <p>Your order has been placed.</p>
+    <!-- Contant info-->
+    <p>Your order has been placed. We will contact you at <strong>{{ email }}</strong> or <strong>{{ phone }}</strong> if there are any issues.</p>
 
-    <p> {{Nihari}}.<p>
+    <!-- Order details-->
+    <h3> Items ordered: </h3>
+    <ul>
+            {% for item in items_ordered %}
+                    <li>{{ item }}</li>
+            {% empty %}
+                    <li>No items selected. </li>
+            {% endfor %}
+        </ul>
 
-    <p> The order will be ready in <strong>{{minutes}} minutes</strong> by {{ready_time}}.</p>
+        {% if instructions %}
+        <p><strong>Special Instrcutions:</strong> {{ instructions }}</p>
+        {% endif %}
 
-    <p>
+        <!-- Estinated prep time-->
+        <hr>
+        <h3>Total Price: ${{ total_price }}</h3>
+        <p> The order will be ready in <strong>{{ minutes }} minutes</strong> (estimated arrival:  <strong>{{  ready_time  }}</strong>).</p>
 
+    <!-- Back to main-->
+    <p><a href="{% url 'main' %}">Return to Home</a></p>
 </div>
 {% endblock %}

@@ -1,4 +1,4 @@
-# formdata/urls.py
+# restaurant/urls.py
 
 from django.urls import path
 from django.conf.urls.static import static
