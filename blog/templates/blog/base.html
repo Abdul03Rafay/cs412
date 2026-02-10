@@ -1,0 +1,16 @@
+<!-- templates/base.html -->
+{%. load static %}
+
+<html>
+    <head>
+        <title>Blog</title>
+        <link = rel="stylessheet" href="{% 'styles-blog.css' %}">
+    </head>
+    <body>
+        <header>
+            <h1>Blog</h1>
+        </header>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>
