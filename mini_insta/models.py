@@ -6,7 +6,7 @@ from django.db import models
 
 # Create your models here.
 class Profile(models.Model):
-    '''Encapsulates the idea of an Article by some author.'''
+    '''Encapsulates the requirment fields for an profile.'''
     
     # data atributes of a profile:
     user_name = models.TextField(blank=False)
