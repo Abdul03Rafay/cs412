@@ -12,5 +12,5 @@ class Profile(models.Model):
     profile_image_url = models.URLField(blank=True)
     
     def __str__(self):
-        ''' Return a string representation og this Article object.'''
+        ''' Return a string representation on this Profile object.'''
         return f'{self.user_name} - {self.display_name}'

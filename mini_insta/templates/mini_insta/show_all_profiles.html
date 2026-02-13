@@ -1,28 +1,25 @@
 <!--templates/mini_insta/show_all_profiles.html-->
 
 {% extends 'mini_insta/base.html' %}
-<h1>Showing all Profiles</h1>
-<!-- scriptlet code to display the value of the variable 'Profile' 
- {{ profiles }}
-  -->
+<!-- scriptlet code to display all profiles -->
  {% block content %}
- <main class="'grid-container">
+ <main class="profiles-grid">
     {% for p in profiles %}
-        <profile>
+    <article class="profile-card">
             {% if p.profile_image_url %}
-            <img src="{{p.profile_image_url}}" alt="{{p.profile_image_url}}">
+            <a href="{% url 'show_profile' p.pk %}">
+            <img class="profile-avatar" src="{{p.profile_image_url}}" alt="{{p.profile_image_url}}">
             </a>
             {% endif %}
+            
+            <a href="{% url 'show_profile' p.pk %}">
+            <h2 class="profile-displayname">{{p.display_name}}</h2>
+            </a>
 
-            <div>
-                <h2>{{p.user_name}}</h2>
-                <h3>{{p.display_name}}</h3>
-                <strong>{{p.bio_text}}</strong>
-                <p>
-                   Joined on: {{p.join_date}}
-                </p>
-             </div>
-            </profile>
+            <h3 class="profile-username">{{p.user_name}}</h3>
+
+
+            </article>
        
         {% endfor %}
 </main>
