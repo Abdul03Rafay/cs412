@@ -1,4 +1,6 @@
-# mini_insta/urls.py
+# File: mini_insta/urls.py
+# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2006
+# Description: Python file to handle relevant urls.
 
 from django.urls import path
 from .views import ProfileListView, ProfileDetailView # our view class defintion

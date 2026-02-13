@@ -1,3 +1,7 @@
+# File: mini_insta/views.py
+# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2006
+# Description: Python file to define views.
+
 from .models import Profile
 from django.views.generic import ListView, DetailView
 
