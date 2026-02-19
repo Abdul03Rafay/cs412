@@ -1,5 +1,5 @@
 # File: mini_insta/models.py
-# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2006
+# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2026
 # Description: Python file to define profile records model.
 
 from django.db import models

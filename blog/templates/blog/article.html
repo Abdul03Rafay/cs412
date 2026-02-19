@@ -6,13 +6,13 @@
  {{ articles }}
   -->
  {% block content %}
- <main class="'grid-container">
+<h1>{{article.title}}</h1>
+
+
+ <main class="grid-container">
 
         <article class="featured">
-            {% if article.image_url %}
-            <img src="{{article.image_url}}" alt="{{article.image_url}}">
-            {% endif %}
-
+            <img src="{{article.image_url}}" alt="">
             <div>
                 <h2>{{article.title}}</h2>
                 <strong>by {{article.author}} at {{article.published}}</strong>
@@ -20,8 +20,22 @@
                 {{article.text}}
                 </p>
             </div>
+
         </article>
-       
+
+        <div>
+            <h2>Comments</h2>
+            <!-- {{article.get_comments}} -->
+            <h3><a href="{% url 'create_comment' article.pk %}">Create a comment</a></h3>
+            <!-- Display the comments about this article -->
+            <!-- {{article.get_comments}} -->
+            {% for comment in article.get_comments %}
+                <div>
+                    <strong>by {{comment.author}} at {{comment.published}}</strong>
+                <p>{{comment.text}}</p>
+                </div>
+        {% endfor %}
+        </div>      
 </main>
 {% endblock %}
 

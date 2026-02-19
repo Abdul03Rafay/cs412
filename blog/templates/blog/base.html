@@ -3,16 +3,17 @@
 
 <html>
     <head>
-        <title>Blog</title>
-        <link rel="stylesheet" href="{% static 'styles-blog.css' %}">
+        <title>Our Blog</title>
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
     </head>
     <body>
         <header>
-            <h1>Blog</h1>
+            <h1>Our Blog</h1>
             <nav>
                 <ul>
                     <li><a href="{% url 'show_all' %}">Show All</a></li>
                     <li><a href="{% url 'random' %}">Random</a></li>
+                    <li><a href="{% url 'create_article' %}">Create</a></li>
                 </ul>
             </nav>
         </header>
