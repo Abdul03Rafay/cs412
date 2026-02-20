@@ -17,13 +17,52 @@
             <div class="profile-body">
                 <h2 class="profile-displayname">{{profile.display_name}}</h2>
                 <h3 class="profile-username">{{profile.user_name}}  </h3>
-                <h3>Followers : --  Following : -- Posts: --</h3>
+                <h3>Followers : --  Following : -- Posts: {{ profile.get_all_posts.count }}</h3>
                 <strong class="profile-bio">{{profile.bio_text}}</strong>
                 <p class="profile-join">
                    Joined on: {{profile.join_date}}
                 </p>
              </div>
             </article>
+
+            <hr>
+
+            <h3>Posts ({{ profile.get_all_posts.count }})</h3>
+
+            {% if profile.get_all_posts %}
+            <div class="posts-grid">
+               {% for post in profile.get_all_posts %}
+                  <a href="{% url 'post_detail' post.pk %}" class="post-link">
+                     <div class="post-card">
+                        <div class="post-header">
+                           <small>{{ post.timestamp }}</small>
+                        </div>
+
+                        <div class="post-image">
+                           {% with first_photo=post.get_all_photos.first %}
+                                 {% if first_photo %}
+                                    <img src="{{ first_photo.image_url }}" alt="Post photo" class="post-photo">
+                                 {% else %}
+                                    <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fmatrix-falling-code-2560x1080-15697.jpg&f=1&nofb=1&ipt=3d84adc8237640bf654c37bfa555a961ae631983eee34a0321966a743eb7d511" 
+                                          alt="No image" 
+                                          class="post-photo placeholder">
+                                          <p>This Post has no photos. </p>
+                                 {% endif %}
+                           {% endwith %}
+                        </div>
+
+                        <div class="post-caption">
+                           <p>{{ post.caption|truncatewords:20|linebreaksbr }}</p>
+                        </div>
+                     </div>
+                  </a>
+               {% endfor %}
+            </div>
+         {% else %}
+            <p>No posts yet.</p>
+         {% endif %}
+
+
 
 <footer><li><a href="{% url 'show_all_profiles' %}">Show All Profiles</a></li></footer>
 {% endblock %}

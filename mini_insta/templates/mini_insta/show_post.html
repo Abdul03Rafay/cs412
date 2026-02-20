@@ -1,0 +1,38 @@
+<!-- mini_insta/templates/mini_insta/show_post.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+
+<article class="post-detail-card">
+    <div class="post-header">
+        <h2>Post by @{{ post.profile.user_name }}</h2>
+        <small> Poseted on: {{ post.timestamp }} </small>
+    </div>
+
+    {% if post.get_all_photos %}
+        <div class="photos-grid">
+            {% for photo in post.get_all_photos %}
+                <div class="photo-item">
+                    <img src="{{ photo.image_url }}"
+                            alt="Photo from post"
+                            class="post-photo">
+                </div>
+                {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-photos">
+            <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fmatrix-falling-code-2560x1080-15697.jpg&f=1&nofb=1&ipt=3d84adc8237640bf654c37bfa555a961ae631983eee34a0321966a743eb7d511" 
+                    alt="No image" 
+                    class="post-photo placeholder">
+            <p>This Post has no photos. </p>
+        </div>
+    {% endif%}
+
+    <div class="post-content">
+        <p class="post-caption">{{ post.caption }}</p>
+    </div>
+
+</article>
+
+<footer><li><a href="{% url 'show_profile' post.profile.pk %}">Back to profile</a></li></footer>
+{% endblock %}

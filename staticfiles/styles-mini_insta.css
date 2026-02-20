@@ -174,3 +174,49 @@ footer a:hover {
 h1, h2, h3 {
     margin: 0;
 }
+
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.post-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.post-header {
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+}
+
+.post-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;          /* square images – adjust as desired */
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.post-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.placeholder {
+    object-fit: contain;
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+.post-caption {
+    padding: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
