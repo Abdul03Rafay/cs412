@@ -32,7 +32,7 @@
             {% if profile.get_all_posts %}
             <div class="posts-grid">
                {% for post in profile.get_all_posts %}
-                  <a href="{% url 'post_detail' post.pk %}" class="post-link">
+                  <a href="{% url 'mini_insta:post_detail' post.pk %}" class="post-link">
                      <div class="post-card">
                         <div class="post-header">
                            <small>{{ post.timestamp }}</small>
@@ -64,5 +64,17 @@
 
 
 
-<footer><li><a href="{% url 'show_all_profiles' %}">Show All Profiles</a></li></footer>
+<footer class="simple-footer">
+    <div class="footer-links">
+        <a href="{% url 'mini_insta:show_all_profiles' %}" class="footer-btn back-btn">
+            ← All Profiles
+        </a>
+
+        {% if profile %}
+            <a href="{% url 'mini_insta:create_post' profile.pk %}" class="footer-btn create-post-btn">
+                <span class="plus-icon">+</span> New Post
+            </a>
+        {% endif %}
+    </div>
+</footer>
 {% endblock %}

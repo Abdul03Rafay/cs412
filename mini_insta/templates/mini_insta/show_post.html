@@ -24,7 +24,6 @@
             <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fmatrix-falling-code-2560x1080-15697.jpg&f=1&nofb=1&ipt=3d84adc8237640bf654c37bfa555a961ae631983eee34a0321966a743eb7d511" 
                     alt="No image" 
                     class="post-photo placeholder">
-            <p>This Post has no photos. </p>
         </div>
     {% endif%}
 
@@ -34,5 +33,7 @@
 
 </article>
 
-<footer><li><a href="{% url 'show_profile' post.profile.pk %}">Back to profile</a></li></footer>
+<footer>
+    <li><a href="{% url 'mini_insta:show_profile' post.profile.pk %}">Back to profile</a></li>
+</footer>
 {% endblock %}

@@ -30,7 +30,7 @@ class Post(models.Model):
     
     # data attributes of a Post:
     profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_created=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
     caption = models.TextField(blank=False)
     
     def __str__(self):
@@ -49,7 +49,7 @@ class Photo(models.Model):
     # data attributes of a Photo:
     post = models.ForeignKey("Post", on_delete=models.CASCADE)
     image_url = models.URLField(blank=False)
-    timestamp = models.DateTimeField(auto_created=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         '''Return a string representation of this photo object.'''

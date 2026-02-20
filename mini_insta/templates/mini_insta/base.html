@@ -13,9 +13,13 @@
     </head>
     <body>
         <header>
-            <h1><li><a href="{% url 'show_all_profiles' %}">MATRIX Insta</a></li></h1>
+            <h1><li><a href="{% url 'mini_insta:show_all_profiles' %}">MATRIX Insta</a></li></h1>
         </header>
-        {% block content %}
-        {% endblock %}
+
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+        
     </body>
 </html>

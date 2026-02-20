@@ -12,12 +12,12 @@
     {% for p in profiles %}
     <article class="profile-card">
             {% if p.profile_image_url %}
-            <a href="{% url 'show_profile' p.pk %}">
+            <a href="{% url 'mini_insta:show_profile' p.pk %}">
             <img class="profile-avatar" src="{{p.profile_image_url}}" alt="{{p.profile_image_url}}">
             </a>
             {% endif %}
             
-            <a href="{% url 'show_profile' p.pk %}">
+            <a href="{% url 'mini_insta:show_profile' p.pk %}">
             <h2 class="profile-displayname">{{p.display_name}}</h2>
             </a>
 
