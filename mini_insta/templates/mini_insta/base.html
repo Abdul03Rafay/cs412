@@ -7,19 +7,33 @@
 {% load static %}
 
 <html>
-    <head>
-        <title>MATRIX Insta</title>
-        <link rel="stylesheet" href="{% static 'styles-mini_insta.css' %}">
-    </head>
-    <body>
-        <header>
-            <h1><li><a href="{% url 'mini_insta:show_all_profiles' %}">MATRIX Insta</a></li></h1>
-        </header>
 
-        <main>
-            {% block content %}
-            {% endblock %}
-        </main>
-        
-    </body>
+<head>
+    <title>MATRIX Insta</title>
+    <link rel="stylesheet" href="{% static 'styles-mini_insta.css' %}">
+</head>
+
+<body>
+    <header>
+        <nav class="top-nav">
+            {% if profile %}
+            <a href="{% url 'mini_insta:post_feed' profile.pk %}">Posts Feed</a>
+            <a href="{% url 'mini_insta:search' profile.pk %}">Search...</a>
+            <h1 class="brand-title"><a href="{% url 'mini_insta:show_all_profiles' %}"
+                    style="text-decoration:none; color:inherit;">MATRIX Insta</a></h1>
+            <a href="{% url 'mini_insta:show_profile' profile.pk %}">Profile</a>
+            {% else %}
+            <h1 class="brand-title"><a href="{% url 'mini_insta:show_all_profiles' %}"
+                    style="text-decoration:none; color:inherit;">MATRIX Insta</a></h1>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</body>
+
 </html>

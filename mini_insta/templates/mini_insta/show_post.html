@@ -10,30 +10,57 @@
     </div>
 
     {% if post.get_all_photos %}
-        <div class="photos-grid">
-            {% for photo in post.get_all_photos %}
-                <div class="photo-item">
-                    <img src="{{ photo.image_url }}"
-                            alt="Photo from post"
-                            class="post-photo">
-                </div>
-                {% endfor %}
+    <div class="photos-grid">
+        {% for photo in post.get_all_photos %}
+        <div class="photo-item">
+            <img src="{{ photo.get_image_url }}" alt="Photo from post" class="post-photo">
         </div>
+        {% endfor %}
+    </div>
     {% else %}
-        <div class="no-photos">
-            <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fmatrix-falling-code-2560x1080-15697.jpg&f=1&nofb=1&ipt=3d84adc8237640bf654c37bfa555a961ae631983eee34a0321966a743eb7d511" 
-                    alt="No image" 
-                    class="post-photo placeholder">
-        </div>
+    <div class="no-photos">
+        <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fmatrix-falling-code-2560x1080-15697.jpg&f=1&nofb=1&ipt=3d84adc8237640bf654c37bfa555a961ae631983eee34a0321966a743eb7d511"
+            alt="No image" class="post-photo placeholder">
+    </div>
     {% endif%}
 
     <div class="post-content">
         <p class="post-caption">{{ post.caption }}</p>
     </div>
 
+    <!-- Display Likes -->
+    <div class="post-likes">
+        <p><strong>{{ post.get_likes.count }} Likes</strong></p>
+    </div>
+
+    <!-- Display Comments -->
+    <div class="post-comments">
+        <h3>Comments:</h3>
+        {% if post.get_all_comments %}
+        <ul class="comments-list">
+            {% for comment in post.get_all_comments %}
+            <li>
+                <strong>
+                    <a href="{% url 'mini_insta:show_profile' comment.profile.pk %}">
+                        {{ comment.profile.user_name }}
+                    </a>:
+                </strong>
+                {{ comment.text }}
+                <br>
+                <small class="text-muted">{{ comment.timestamp }}</small>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No comments yet.</p>
+        {% endif %}
+    </div>
+
 </article>
 
 <footer>
     <li><a href="{% url 'mini_insta:show_profile' post.profile.pk %}">Back to profile</a></li>
+    <li><a href="{% url 'mini_insta:update_post' post.pk %}">Update</a></li>
+    <li><a href="{% url 'mini_insta:delete_post' post.pk %}">Delete</a></li>
 </footer>
 {% endblock %}

@@ -1,0 +1,24 @@
+<!-- mini_insta/templates/mini_insta/update_post_form.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Update Post</h1>
+
+    <form method="POST" action="{% url 'mini_insta:update_post' post.pk %}" class="post-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.caption.id_for_label }}">Caption:</label>
+            {{ form.caption }}
+            {% if form.caption.errors %}
+            <div class="error">{{ form.caption.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="{% url 'mini_insta:post_detail' post.pk %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+<!-- mini_insta/templates/mini_insta/search_results.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Search Results for "{{ query }}"</h2>
+</div>
+
+<hr>
+
+<h3>Matching Profiles ({{ profiles.count }})</h3>
+{% if profiles %}
+<div class="profiles-grid">
+    {% for matched_profile in profiles %}
+    <article class="profile-card" style="margin-bottom: 20px;">
+        <a href="{% url 'mini_insta:show_profile' matched_profile.pk %}" style="text-decoration: none; color: inherit;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                {% if matched_profile.profile_image_url %}
+                <img src="{{ matched_profile.profile_image_url }}" alt="Profile photo"
+                    style="width: 80px; height: 80px; border-radius: 50%;">
+                {% else %}
+                <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fmatrix-falling-code-2560x1080-15697.jpg&f=1&nofb=1&ipt=3d84adc8237640bf654c37bfa555a961ae631983eee34a0321966a743eb7d511"
+                    alt="No image" style="width: 80px; height: 80px; border-radius: 50%;">
+                {% endif %}
+                <div>
+                    <h3 style="margin: 0;">{{ matched_profile.display_name }}</h3>
+                    <p style="margin: 0;">@{{ matched_profile.user_name }}</p>
+                    <small>{{ matched_profile.bio_text|truncatewords:15 }}</small>
+                </div>
+            </div>
+        </a>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<p>No profiles found matching "{{ query }}".</p>
+{% endif %}
+
+<hr>
+
+<h3>Matching Posts ({{ posts.count }})</h3>
+{% if posts %}
+<div class="posts-grid">
+    {% for post in posts %}
+    <article class="post-detail-card" style="margin-bottom: 40px; border-bottom: 2px solid #ddd; padding-bottom: 20px;">
+        <div class="post-header">
+            <h3>
+                <img src="{{ post.profile.profile_image_url }}" alt="Avatar"
+                    style="width: 40px; height: 40px; border-radius: 50%; vertical-align: middle;">
+                <a href="{% url 'mini_insta:show_profile' post.profile.pk %}">
+                    {{ post.profile.display_name }}
+                    (@{{ post.profile.user_name }})
+                </a>
+            </h3>
+            <small>Posted on: {{ post.timestamp }}</small>
+        </div>
+
+        {% with first_photo=post.get_all_photos.first %}
+        {% if first_photo %}
+        <div class="post-image" style="margin-top: 10px; margin-bottom: 10px;">
+            <a href="{% url 'mini_insta:post_detail' post.pk %}">
+                <img src="{{ first_photo.get_image_url }}" alt="Post photo" class="post-photo" style="max-width: 100%;">
+            </a>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="post-content">
+            <p class="post-caption">{{ post.caption }}</p>
+        </div>
+
+        <div class="post-likes">
+            <small><strong>{{ post.get_likes.count }} Likes</strong> · <strong>{{ post.get_all_comments.count }}
+                    Comments</strong></small>
+        </div>
+
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<p>No posts found matching "{{ query }}".</p>
+{% endif %}
+
+{% endblock %}

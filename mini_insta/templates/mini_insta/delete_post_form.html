@@ -1,0 +1,17 @@
+<!-- mini_insta/templates/mini_insta/delete_post_form.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Delete Post</h1>
+    <h2>Are you sure you want to delete "{{ post }}"?</h2>
+
+    <form method="POST" action="{% url 'mini_insta:delete_post' post.pk %}" class="post-form">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">Confirm Delete</button>
+            <a href="{% url 'mini_insta:show_profile' profile.pk %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

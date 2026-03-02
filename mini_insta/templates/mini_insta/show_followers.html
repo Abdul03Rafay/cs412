@@ -1,0 +1,46 @@
+<!-- mini_insta/templates/mini_insta/show_followers.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="profile-card">
+    <div class="profile-body">
+        <h2 class="profile-displayname">Followers for {{ profile.user_name }}</h2>
+    </div>
+</div>
+
+<hr>
+
+<h3>Followers ({{ profile.get_num_followers }})</h3>
+
+{% if profile.get_followers %}
+<div class="posts-grid">
+    {% for follower in profile.get_followers %}
+    <a href="{% url 'mini_insta:show_profile' follower.pk %}" class="post-link">
+        <div class="post-card">
+            <div class="post-image">
+                {% if follower.profile_image_url %}
+                <img src="{{ follower.profile_image_url }}" alt="Profile photo" class="post-photo">
+                {% else %}
+                <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fmatrix-falling-code-2560x1080-15697.jpg&f=1&nofb=1&ipt=3d84adc8237640bf654c37bfa555a961ae631983eee34a0321966a743eb7d511"
+                    alt="No image" class="post-photo placeholder">
+                {% endif %}
+            </div>
+            <div class="post-caption">
+                <p>{{ follower.display_name }} (@{{ follower.user_name }})</p>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<p>No followers yet.</p>
+{% endif %}
+
+<footer class="simple-footer">
+    <div class="footer-links">
+        <a href="{% url 'mini_insta:show_profile' profile.pk %}" class="footer-btn back-btn">
+            ← Back to {{ profile.user_name }}
+        </a>
+    </div>
+</footer>
+{% endblock %}

@@ -1,0 +1,20 @@
+<!-- mini_insta/templates/mini_insta/search.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Search MATRIX Insta</h1>
+
+    <form method="GET" action="{% url 'mini_insta:search' profile.pk %}" class="post-form">
+        <div class="form-group">
+            <label for="query">Search profiles and posts:</label>
+            <input type="text" name="query" id="query" placeholder="Type a search term..." class="form-control"
+                required>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
