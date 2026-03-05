@@ -1,0 +1,21 @@
+<!-- mini_insta/templates/mini_insta/register.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Create a New Account</h1>
+
+    <form method="post" class="post-form">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Register</button>
+        </div>
+    </form>
+
+    <p>Already have an account? <a href="{% url 'mini_insta:login' %}">Login here</a>.</p>
+</div>
+{% endblock %}

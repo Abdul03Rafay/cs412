@@ -74,11 +74,11 @@
          ← All Profiles
       </a>
 
-      {% if profile %}
-      <a href="{% url 'mini_insta:create_post' profile.pk %}" class="footer-btn create-post-btn">
+      {% if request.user == profile.user %}
+      <a href="{% url 'mini_insta:create_post' %}" class="footer-btn create-post-btn">
          <span class="plus-icon">+</span> New Post
       </a>
-      <a href="{% url 'mini_insta:update_profile' profile.pk %}" class="footer-btn">
+      <a href="{% url 'mini_insta:update_profile' %}" class="footer-btn">
          Update Profile
       </a>
       {% endif %}

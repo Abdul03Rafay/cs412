@@ -1,0 +1,29 @@
+<!-- mini_insta/templates/mini_insta/login.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Login to MATRIX Insta</h1>
+
+    <form method="post" class="post-form">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+
+        {% if request.GET.next %}
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
+        {% endif %}
+    </form>
+
+    {% if form.errors %}
+    <div class="error-messages">
+        <p>Invalid username or password. Please try again.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

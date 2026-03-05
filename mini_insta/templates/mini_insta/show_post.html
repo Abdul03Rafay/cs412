@@ -60,7 +60,9 @@
 
 <footer>
     <li><a href="{% url 'mini_insta:show_profile' post.profile.pk %}">Back to profile</a></li>
+    {% if request.user == post.profile.user %}
     <li><a href="{% url 'mini_insta:update_post' post.pk %}">Update</a></li>
     <li><a href="{% url 'mini_insta:delete_post' post.pk %}">Delete</a></li>
+    {% endif %}
 </footer>
 {% endblock %}

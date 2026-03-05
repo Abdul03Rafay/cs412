@@ -1,7 +1,7 @@
 <!-- templates/mini_insta/base.html 
- 
+ Assignment 6: Task 1 completed.
 # File: base.html
-# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2006
+# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2026 - 3/5/2026
 # Description: base template to establish structure.-->
 
 {% load static %}
@@ -16,15 +16,19 @@
 <body>
     <header>
         <nav class="top-nav">
-            {% if profile %}
-            <a href="{% url 'mini_insta:post_feed' profile.pk %}">Posts Feed</a>
-            <a href="{% url 'mini_insta:search' profile.pk %}">Search...</a>
             <h1 class="brand-title"><a href="{% url 'mini_insta:show_all_profiles' %}"
                     style="text-decoration:none; color:inherit;">MATRIX Insta</a></h1>
-            <a href="{% url 'mini_insta:show_profile' profile.pk %}">Profile</a>
+
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'mini_insta:post_feed' %}">Posts Feed</a>
+            <a href="{% url 'mini_insta:search' %}">Search...</a>
+            <a href="{% url 'mini_insta:show_my_profile' %}">My Profile</a>
+            <a href="{% url 'mini_insta:logout' %}">Logout</a>
+            Logged in user: {{ request.user }}.
             {% else %}
-            <h1 class="brand-title"><a href="{% url 'mini_insta:show_all_profiles' %}"
-                    style="text-decoration:none; color:inherit;">MATRIX Insta</a></h1>
+            <a href="{% url 'mini_insta:register' %}">Register</a>
+            <a href="{% url 'mini_insta:login' %}">Login</a>
+            Not logged in.
             {% endif %}
         </nav>
     </header>

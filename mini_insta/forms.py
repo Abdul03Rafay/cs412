@@ -4,6 +4,8 @@
 
 from django import forms
 from .models import *
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
 class CreatePostForm(forms.ModelForm):
     '''A form to create an post to the database.'''
@@ -28,3 +30,14 @@ class UpdatePostForm(forms.ModelForm):
         '''Associate this form with the Post model.'''
         model = Post
         fields = ['caption']
+
+class RegistrationForm(UserCreationForm):
+    '''A form to create a new User and Profile.'''
+    
+    display_name = forms.CharField(max_length=100, help_text="Enter your display name.")
+    bio_text = forms.CharField(widget=forms.Textarea, help_text="Tell us about yourself.")
+    profile_image_url = forms.URLField(required=False, help_text="Link to your profile picture (optional).")
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email')
