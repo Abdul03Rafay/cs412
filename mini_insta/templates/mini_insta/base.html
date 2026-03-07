@@ -23,10 +23,14 @@
             <a href="{% url 'mini_insta:post_feed' %}">Posts Feed</a>
             <a href="{% url 'mini_insta:search' %}">Search...</a>
             <a href="{% url 'mini_insta:show_my_profile' %}">My Profile</a>
-            <a href="{% url 'mini_insta:logout' %}">Logout</a>
+            <form action="{% url 'mini_insta:logout' %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-link"
+                    style="background:none; border:none; color:inherit; font:inherit; cursor:pointer; padding:0; text-decoration:underline;">Logout</button>
+            </form>
             Logged in user: {{ request.user }}.
             {% else %}
-            <a href="{% url 'mini_insta:register' %}">Register</a>
+            <a href="{% url 'mini_insta:create_profile' %}">Create Profile</a>
             <a href="{% url 'mini_insta:login' %}">Login</a>
             Not logged in.
             {% endif %}

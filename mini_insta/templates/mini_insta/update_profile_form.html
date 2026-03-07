@@ -6,7 +6,7 @@
     <h1>Update Profile</h1>
     <h2>Change your display name, bio, or profile image here...</h2>
 
-    <form method="POST" action="{% url 'mini_insta:update_profile' profile.pk %}" class="post-form">
+    <form method="POST" action="{% url 'mini_insta:update_profile' %}" class="post-form">
         {% csrf_token %}
 
         <div class="form-group">

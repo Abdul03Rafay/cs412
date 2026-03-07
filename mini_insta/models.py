@@ -1,5 +1,5 @@
 # File: mini_insta/models.py
-# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2026 - 2/20/2026.
+# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2026 - 3/6/2026
 # Description: Python file to define relevant models and their data attributes.
 
 from django.db import models

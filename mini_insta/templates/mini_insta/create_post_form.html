@@ -8,14 +8,14 @@
     <h1>Create New Post</h1>
     <h2>Share what's on your mind {{ profile.user_name }}...</h2>
 
-    <form method="POST" action="{% url 'mini_insta:create_post' profile.pk %}" class="post-form" enctype="multipart/form-data">
+    <form method="POST" action="{% url 'mini_insta:create_post' %}" class="post-form" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="form-group">
             <label for="{{ form.caption.id_for_label }}"></label>
             {{ form.caption }}
             {% if form.caption.errors %}
-                <div class="error">{{ form.caption.errors }}</div>
+            <div class="error">{{ form.caption.errors }}</div>
             {% endif %}
         </div>
 

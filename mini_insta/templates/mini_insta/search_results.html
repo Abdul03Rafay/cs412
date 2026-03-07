@@ -49,7 +49,6 @@
                     style="width: 40px; height: 40px; border-radius: 50%; vertical-align: middle;">
                 <a href="{% url 'mini_insta:show_profile' post.profile.pk %}">
                     {{ post.profile.display_name }}
-                    (@{{ post.profile.user_name }})
                 </a>
             </h3>
             <small>Posted on: {{ post.timestamp }}</small>

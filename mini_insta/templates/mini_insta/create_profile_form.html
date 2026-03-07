@@ -1,0 +1,28 @@
+<!-- mini_insta/templates/mini_insta/create_profile_form.html -->
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Create a New MATRIX Profile</h1>
+
+    <form method="post" class="post-form">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3>User Account Information</h3>
+            {{ user_form.as_p }}
+        </div>
+
+        <hr>
+
+        <div class="form-section">
+            <h3>Profile Information</h3>
+            {{ form.as_p }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create Profile</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

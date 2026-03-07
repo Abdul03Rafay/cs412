@@ -1,5 +1,5 @@
 # File: mini_insta/urls.py
-# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2026
+# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2026 - 3/6/2026
 # Description: Python file to handle relevant urls.
 
 from django.urls import path
@@ -8,7 +8,8 @@ from .views import (
     ProfileListView, ProfileDetailView, PostDetailView, CreatePostView, 
     UpdateProfileView, UpdatePostView, DeletePostView, ShowFollowersDetailView, 
     ShowFollowingDetailView, PostFeedListView, SearchView, LoggedInProfileDetailView, 
-    RegisterView
+    CreateProfileView, FollowView, UnfollowView, LikeView, UnlikeView,
+    LogoutConfirmationView, CreateCommentView
 )
 
 app_name = 'mini_insta'
@@ -17,7 +18,7 @@ urlpatterns = [
     # map the URL (empty string) to the view
     path('', ProfileListView.as_view(), name='show_all_profiles'),
     path('profile/', LoggedInProfileDetailView.as_view(), name='show_my_profile'),
-    path('register/', RegisterView.as_view(), name='register'),
+    path('create_profile/', CreateProfileView.as_view(), name='create_profile'),
     path('profile/<int:pk>', ProfileDetailView.as_view(), name="show_profile"),
     path('post/<int:pk>', PostDetailView.as_view(), name='post_detail'),
     path('profile/create_post/', CreatePostView.as_view(), name='create_post'),
@@ -29,5 +30,11 @@ urlpatterns = [
     path('post/<int:pk>/update', UpdatePostView.as_view(), name='update_post'),
     path('post/<int:pk>/delete', DeletePostView.as_view(), name='delete_post'),
     path('login/', LoginView.as_view(template_name='mini_insta/login.html'), name='login'),
-    path('logout/', LogoutView.as_view(template_name='mini_insta/show_all_profiles.html'), name='logout'),
+    path('logout/', LogoutView.as_view(next_page='mini_insta:logout_confirmation'), name='logout'),
+    path('logout_confirmation/', LogoutConfirmationView.as_view(), name='logout_confirmation'),
+    path('profile/<int:pk>/follow', FollowView.as_view(), name='follow'),
+    path('profile/<int:pk>/delete_follow', UnfollowView.as_view(), name='unfollow'),
+    path('post/<int:pk>/like', LikeView.as_view(), name='like'),
+    path('post/<int:pk>/delete_like', UnlikeView.as_view(), name='unlike'),
+    path('post/<int:pk>/comment', CreateCommentView.as_view(), name='create_comment'),
 ]

@@ -1,0 +1,9 @@
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Logged Out</h1>
+    <p>You have been successfully logged out of MATRIX Insta.</p>
+    <a href="{% url 'mini_insta:login' %}" class="btn btn-primary">Log in again</a>
+</div>
+{% endblock %}

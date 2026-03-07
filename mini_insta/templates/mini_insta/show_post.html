@@ -31,6 +31,14 @@
     <!-- Display Likes -->
     <div class="post-likes">
         <p><strong>{{ post.get_likes.count }} Likes</strong></p>
+
+        {% if request.user.is_authenticated and request.user != post.profile.user %}
+        {% if is_liked %}
+        <a href="{% url 'mini_insta:unlike' post.pk %}" class="btn btn-secondary">Unlike</a>
+        {% else %}
+        <a href="{% url 'mini_insta:like' post.pk %}" class="btn btn-primary">Like</a>
+        {% endif %}
+        {% endif %}
     </div>
 
     <!-- Display Comments -->
@@ -53,6 +61,16 @@
         </ul>
         {% else %}
         <p>No comments yet.</p>
+        {% endif %}
+
+        {% if request.user.is_authenticated %}
+        <hr>
+        <h4>Add a Comment:</h4>
+        <form method="POST" action="{% url 'mini_insta:create_comment' post.pk %}" class="comment-form">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
         {% endif %}
     </div>
 

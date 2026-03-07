@@ -1,6 +1,6 @@
-# File: mini_insta/forms/py
-# Author: Abdul Rafay (rafaya@bu.edu), 2/20/2026
-# Description: Python file to to define forms which are used for create/update/delete operations
+# File: mini_insta/forms.py
+# Author: Abdul Rafay (rafaya@bu.edu), 2/20/2026 - 3/6/2026
+# Description: Python file to define forms which are used for create/update/delete operations
 
 from django import forms
 from .models import *
@@ -31,6 +31,12 @@ class UpdatePostForm(forms.ModelForm):
         model = Post
         fields = ['caption']
 
+class CreateProfileForm(forms.ModelForm):
+    '''A form to create a new Profile.'''
+    class Meta:
+        model = Profile
+        fields = ['user_name', 'display_name', 'bio_text', 'profile_image_url']
+
 class RegistrationForm(UserCreationForm):
     '''A form to create a new User and Profile.'''
     
@@ -41,3 +47,12 @@ class RegistrationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
         fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email')
+
+class CommentForm(forms.ModelForm):
+    '''A form to create a new Comment.'''
+    class Meta:
+        model = Comment
+        fields = ['text']
+        widgets = {
+            'text': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write a comment...'}),
+        }
