@@ -1,0 +1,45 @@
+<!-- voter_analytics/templates/voter_analytics/voter_detail.html -->
+{% extends 'voter_analytics/base.html' %}
+
+{% block content %}
+<div class="detail-container">
+    <h2>Voter Details: {{ voter.first_name }} {{ voter.last_name }}</h2>
+    
+    <div class="detail-grid">
+        <strong>First Name:</strong> <span>{{ voter.first_name }}</span>
+        <strong>Last Name:</strong> <span>{{ voter.last_name }}</span>
+        
+        <strong>Address:</strong>
+        <span>
+            {{ voter.street_number }} {{ voter.street_name }}<br>
+            {% if voter.apartment_number %}Apt {{ voter.apartment_number }}<br>{% endif %}
+            Newton, MA {{ voter.zip_code }}
+        </span>
+        
+        <strong>Date of Birth:</strong> <span>{{ voter.date_of_birth }}</span>
+        <strong>Date of Registration:</strong> <span>{{ voter.date_of_registration }}</span>
+        <strong>Party Affiliation:</strong> <span>{{ voter.party_affiliation }}</span>
+        <strong>Precinct Number:</strong> <span>{{ voter.precinct_number }}</span>
+        <strong>Voter Score:</strong> <span>{{ voter.voter_score }}</span>
+        
+        <hr class="full-width" style="border: 0.5px solid #eee;">
+        
+        <h3>Election Participation</h3>
+        <div class="election-participation">
+            <span>2020 State:</span> <span>{{ voter.v20state|yesno:"Voted,Did not vote" }}</span>
+            <span>2021 Town:</span> <span>{{ voter.v21town|yesno:"Voted,Did not vote" }}</span>
+            <span>2021 Primary:</span> <span>{{ voter.v21primary|yesno:"Voted,Did not vote" }}</span>
+            <span>2022 General:</span> <span>{{ voter.v22general|yesno:"Voted,Did not vote" }}</span>
+            <span>2023 Town:</span> <span>{{ voter.v23town|yesno:"Voted,Did not vote" }}</span>
+        </div>
+        
+        <div class="full-width" style="margin-top: 20px;">
+            <a href="https://www.google.com/maps/search/?api=1&query={{ voter.street_number }}+{{ voter.street_name }}+Newton+MA+{{ voter.zip_code }}" target="_blank" class="google-maps-button">View on Google Maps</a>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="{% url 'voter_analytics:voters' %}">&laquo; Back to Voter List</a>
+    </div>
+</div>
+{% endblock %}

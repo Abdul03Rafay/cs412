@@ -1,0 +1,86 @@
+<!-- voter_analytics/templates/voter_analytics/graphs.html -->
+{% extends 'voter_analytics/base.html' %}
+{% block content %}
+
+
+<h2>Voter Analytics Graphs</h2>
+
+<!-- Filtering Form (Same as voter_list.html) -->
+<section class="filter-section">
+    <h3>Filter Results to Update Graphs</h3>
+    <form method="get" class="filter-form">
+        <!-- Party Affiliation -->
+        <div>
+            <label for="party">Party Affiliation:</label><br>
+            <select name="party" id="party">
+                <option value="">Any</option>
+                {% for p in parties %}
+                <option value="{{ p }}" {% if request.GET.party == p %}selected{% endif %}>{{ p }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Min Date of Birth -->
+        <div>
+            <label for="min_dob">Min Date of Birth (Year):</label><br>
+            <select name="min_dob" id="min_dob">
+                <option value="">Any</option>
+                {% for y in years %}
+                <option value="{{ y }}" {% if request.GET.min_dob == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Max Date of Birth -->
+        <div>
+            <label for="max_dob">Max Date of Birth (Year):</label><br>
+            <select name="max_dob" id="max_dob">
+                <option value="">Any</option>
+                {% for y in years %}
+                <option value="{{ y }}" {% if request.GET.max_dob == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Voter Score -->
+        <div>
+            <label for="voter_score">Voter Score:</label><br>
+            <select name="voter_score" id="voter_score">
+                <option value="">Any</option>
+                {% for s in scores %}
+                <option value="{{ s }}" {% if request.GET.voter_score == s|stringformat:"s" %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="full-width">
+            <label>Voted in Elections:</label><br>
+            <input type="checkbox" name="v20state" id="v20state" {% if request.GET.v20state %}checked{% endif %}> <label for="v20state">2020 State</label>
+            <input type="checkbox" name="v21town" id="v21town" {% if request.GET.v21town %}checked{% endif %}> <label for="v21town">2021 Town</label>
+            <input type="checkbox" name="v21primary" id="v21primary" {% if request.GET.v21primary %}checked{% endif %}> <label for="v21primary">2021 Primary</label>
+            <input type="checkbox" name="v22general" id="v22general" {% if request.GET.v22general %}checked{% endif %}> <label for="v22general">2022 General</label>
+            <input type="checkbox" name="v23town" id="v23town" {% if request.GET.v23town %}checked{% endif %}> <label for="v23town">2023 Town</label>
+        </div>
+
+        <div class="submit-container">
+            <input type="submit" value="Update Graphs" class="submit-button">
+        </div>
+    </form>
+</section>
+
+<!-- Graphs -->
+<div class="graphs-container">
+    <div class="graph-box">
+        {{ birth_year_graph|safe }}
+    </div>
+    
+    <div class="graph-box">
+        {{ party_graph|safe }}
+    </div>
+    
+    <div class="graph-box">
+        {{ election_graph|safe }}
+    </div>
+</div>
+
+{% endblock %}
