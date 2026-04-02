@@ -13,4 +13,8 @@ urlpatterns = [
     path('article/create', CreateArticleView.as_view(), name="create_article"),
     #path('create_comment', CreateCommentView.as_view(), name='create_comment'),
     path('article/<int:pk>/create_comment', CreateCommentView.as_view(), name='create_comment'),
+    
+    ### REST API views:
+    path('api/articles', ArticleListAPIView.as_view(), name='article_list_api'),
+    path('api/article/<int:pk>', ArticleDetailAPIView.as_view(), name='article_detail_api'),
 ]

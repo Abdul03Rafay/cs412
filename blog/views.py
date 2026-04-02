@@ -84,5 +84,16 @@ class CreateCommentView(CreateView):
         # call reverse to generate the URL for this Article
         return reverse('article', kwargs={'pk':pk})
     
+    
+    
+    #### REST API Views ####
+    
+from rest_framework import generics
+from .serializers import *
+
+class ArticleListAPIView(generics.ListAPIView):
+    '''A view to handle GET and POST requests for Article objects.'''
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
    
     
