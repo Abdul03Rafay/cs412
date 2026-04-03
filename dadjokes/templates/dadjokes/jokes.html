@@ -1,0 +1,17 @@
+<!-- dadjokes/templates/dadjokes/jokes.html -->
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<main>
+    <h2>All Dad Jokes</h2>
+    {% for joke in jokes %}
+    <div>
+        <p>{{ joke.text }}</p>
+        <strong>Contributed by {{ joke.contributor }} on {{ joke.published }}</strong>
+        <br>
+        <a href="{% url 'joke' joke.pk %}">View</a>
+    </div>
+    {% endfor %}
+</main>
+{% endblock %}

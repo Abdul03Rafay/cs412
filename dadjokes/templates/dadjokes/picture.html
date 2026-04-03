@@ -1,0 +1,14 @@
+<!-- dadjokes/templates/dadjokes/picture.html -->
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<main>
+    <h2>Silly Picture</h2>
+    <div>
+        <img src="{{ picture.image_url }}" alt="Silly picture by {{ picture.contributor }}">
+        <br>
+        <strong>Contributed by {{ picture.contributor }} on {{ picture.published }}</strong>
+    </div>
+</main>
+{% endblock %}

@@ -95,5 +95,8 @@ class ArticleListAPIView(generics.ListAPIView):
     '''A view to handle GET and POST requests for Article objects.'''
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
-   
-    
+
+class ArticleDetailAPIView(generics.RetrieveAPIView):
+    '''A view to handle GET requests for a single Article object.'''
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer

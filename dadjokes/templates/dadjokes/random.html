@@ -1,0 +1,24 @@
+<!-- dadjokes/templates/dadjokes/random.html -->
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<main>
+    <h2>Random Dad Joke</h2>
+    <div>
+        <p>{{ joke.text }}</p>
+        <strong>Contributed by {{ joke.contributor }} on {{ joke.published }}</strong>
+        <br>
+        <a href="{% url 'joke' joke.pk %}">View this joke</a>
+    </div>
+
+    <h2>Random Silly Picture</h2>
+    <div>
+        <img src="{{ picture.image_url }}" alt="Silly picture by {{ picture.contributor }}">
+        <br>
+        <strong>Contributed by {{ picture.contributor }} on {{ picture.published }}</strong>
+        <br>
+        <a href="{% url 'picture' picture.pk %}">View this picture</a>
+    </div>
+</main>
+{% endblock %}

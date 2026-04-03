@@ -1,0 +1,13 @@
+<!-- dadjokes/templates/dadjokes/joke.html -->
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<main>
+    <h2>Dad Joke</h2>
+    <div>
+        <p>{{ joke.text }}</p>
+        <strong>Contributed by {{ joke.contributor }} on {{ joke.published }}</strong>
+    </div>
+</main>
+{% endblock %}
