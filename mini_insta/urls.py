@@ -43,6 +43,7 @@ urlpatterns = [
     path('post/<int:pk>/comment', CreateCommentView.as_view(), name='create_comment'),
 
     # API endpoints
+    path('api/', ProfileListAPIView.as_view(), name='api_root'),
     path('api/profiles/', ProfileListAPIView.as_view(), name='api_profile_list'),
     path('api/profiles/<int:pk>/', ProfileDetailAPIView.as_view(), name='api_profile_detail'),
     path('api/profiles/<int:pk>/posts/', ProfilePostsAPIView.as_view(), name='api_profile_posts'),
