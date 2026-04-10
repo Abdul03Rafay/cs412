@@ -1,5 +1,5 @@
 # File: mini_insta/urls.py
-# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2026 - 3/6/2026
+# Author: Abdul Rafay (rafaya@bu.edu), 2/13/2026 - 4  /9/2026
 # Description: Python file to handle relevant urls.
 
 from django.urls import path
@@ -10,6 +10,10 @@ from .views import (
     ShowFollowingDetailView, PostFeedListView, SearchView, LoggedInProfileDetailView, 
     CreateProfileView, FollowView, UnfollowView, LikeView, UnlikeView,
     LogoutConfirmationView, CreateCommentView
+)
+from .api_views import (
+    ProfileListAPIView, ProfileDetailAPIView, ProfilePostsAPIView, 
+    ProfileFeedAPIView, PostCreateAPIView, LoginAPIView
 )
 
 app_name = 'mini_insta'
@@ -37,4 +41,12 @@ urlpatterns = [
     path('post/<int:pk>/like', LikeView.as_view(), name='like'),
     path('post/<int:pk>/delete_like', UnlikeView.as_view(), name='unlike'),
     path('post/<int:pk>/comment', CreateCommentView.as_view(), name='create_comment'),
+
+    # API endpoints
+    path('api/profiles/', ProfileListAPIView.as_view(), name='api_profile_list'),
+    path('api/profiles/<int:pk>/', ProfileDetailAPIView.as_view(), name='api_profile_detail'),
+    path('api/profiles/<int:pk>/posts/', ProfilePostsAPIView.as_view(), name='api_profile_posts'),
+    path('api/profiles/<int:pk>/feed/', ProfileFeedAPIView.as_view(), name='api_profile_feed'),
+    path('api/posts/', PostCreateAPIView.as_view(), name='api_post_create'),
+    path('api/login/', LoginAPIView.as_view(), name='api_login'),
 ]
