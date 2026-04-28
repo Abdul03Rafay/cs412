@@ -310,6 +310,12 @@ ul.item-list li:last-child { border-bottom: none; }
 
 ul.item-list li form { margin: 0; }
 
+.item-list-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 /* --- Data Table --- */
 .data-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 
@@ -391,6 +397,216 @@ footer p {
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin: 0;
+}
+
+/* --- Toggle Group (radio pill buttons) --- */
+.toggle-group {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    overflow: hidden;
+}
+
+.toggle-group input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.toggle-group label {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
+    font-family: var(--font);
+    font-weight: 400;
+    color: var(--mid-grey);
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+}
+
+.toggle-group label:last-of-type { border-right: none; }
+
+.toggle-group input[type="radio"]:checked + label {
+    background: var(--dark);
+    color: var(--white);
+}
+
+/* Four-option method row wraps into 2×2 */
+.toggle-group-col {
+    flex-wrap: wrap;
+}
+
+.toggle-group-col label {
+    flex: 1 0 45%;
+    border-bottom: 1px solid var(--border);
+}
+
+.toggle-group-col label:nth-last-of-type(-n+2) { border-bottom: none; }
+
+/* --- Add City inline form --- */
+.add-city-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.add-city-form .form-input { flex: 1; }
+
+/* --- Calendar: city strip --- */
+.city-strip-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.city-strip {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 4px 2px;
+    width: max-content;
+}
+
+.city-tile {
+    flex-shrink: 0;
+    padding: 8px 18px;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--dark-grey);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.13s, border-color 0.13s, color 0.13s;
+    user-select: none;
+}
+
+.city-tile:hover { border-color: var(--mid-grey); color: var(--dark); }
+
+.city-tile-active {
+    background: var(--dark);
+    border-color: var(--dark);
+    color: var(--white);
+}
+
+/* --- Calendar: horizontal date strip --- */
+.date-strip-wrapper {
+    overflow-x: auto;
+    overflow-y: visible;
+    width: 100%;
+    padding-bottom: 8px;
+    margin-bottom: 1.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.date-strip {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: max-content;
+    gap: 6px;
+    padding: 4px 2px;
+}
+
+.date-tile {
+    flex-shrink: 0;
+    width: 62px;
+    padding: 9px 6px 8px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: background 0.13s, border-color 0.13s, color 0.13s;
+    background: var(--white);
+}
+
+.date-tile:hover { border-color: var(--mid-grey); }
+
+.date-tile-today { border-color: var(--dark-grey); }
+
+.date-tile-active {
+    background: var(--dark);
+    border-color: var(--dark);
+    color: var(--white);
+}
+
+.dt-day   { font-size: 1.1rem; font-weight: 400; line-height: 1.2; }
+.dt-month { font-size: 0.65rem; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.3; }
+
+/* --- Calendar: prayer time card --- */
+.cal-prayer-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-width: 380px;
+}
+
+.cal-card-head {
+    background: var(--dark);
+    color: var(--white);
+    padding: 14px 18px 12px;
+}
+
+.cal-card-city {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 400;
+}
+
+.cal-card-greg {
+    display: block;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.55);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+}
+
+.cal-card-hijri {
+    padding: 8px 18px;
+    font-size: 0.78rem;
+    color: var(--mid-grey);
+    border-bottom: 1px solid var(--light-grey);
+    letter-spacing: 0.02em;
+}
+
+.cal-card-hijri em { font-style: normal; color: var(--dark-grey); }
+
+.cal-card-times { padding: 6px 18px 14px; }
+
+.cal-time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--light-grey);
+    font-size: 0.86rem;
+}
+
+.cal-time-row:last-child { border-bottom: none; }
+.cal-time-label { color: var(--mid-grey); }
+.cal-time-val   { font-weight: 500; color: var(--dark); font-variant-numeric: tabular-nums; }
+
+.cal-empty-msg {
+    font-size: 0.82rem;
+    color: var(--mid-grey);
+    padding: 16px 18px;
+    margin: 0;
+    line-height: 1.6;
 }
 
 /* --- Utilities --- */

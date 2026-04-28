@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.urls import reverse
 from django.db.models import Q
 from .models import City, PrayerTime, Profile, HijriCalendar, SavedCity
@@ -179,12 +180,68 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('profile_detail')
 
 
-class HijriCalendarListView(LoginRequiredMixin, ListView):
-    '''View to list Hijri calendar mappings and Islamic holidays.'''
+class HijriCalendarListView(LoginRequiredMixin, TemplateView):
+    '''Interactive Hijri calendar: horizontally-scrollable date strip with a prayer time
+    card that updates when the user changes the date or selected city.'''
     template_name = 'project/hijricalendar_list.html'
-    model = HijriCalendar
-    context_object_name = 'calendar_entries'
-    ordering = ['date']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profile, _ = Profile.objects.get_or_create(user=self.request.user)
+
+        today = datetime.date.today()
+        start = today - datetime.timedelta(days=45)
+        end   = today + datetime.timedelta(days=45)
+
+        # Build Hijri lookup from DB cache
+        hijri_map = {
+            hc.date.isoformat(): {
+                'hijri_day':    hc.hijri_day,
+                'hijri_month':  hc.hijri_month,
+                'hijri_year':   hc.hijri_year,
+                'holiday_name': hc.holiday_name,
+            }
+            for hc in HijriCalendar.objects.filter(date__gte=start, date__lte=end)
+        }
+
+        # 91-day date list for the strip
+        dates = []
+        d = start
+        while d <= end:
+            iso = d.isoformat()
+            h = hijri_map.get(iso, {})
+            dates.append({
+                'gregorian':    iso,
+                'hijri_day':    h.get('hijri_day', ''),
+                'hijri_month':  h.get('hijri_month', ''),
+                'hijri_year':   h.get('hijri_year', ''),
+                'holiday_name': h.get('holiday_name', ''),
+                'is_today':     d == today,
+            })
+            d += datetime.timedelta(days=1)
+
+        # Saved cities for city filter
+        saved = list(SavedCity.objects.filter(profile=profile).select_related('city'))
+        cities = [{'pk': sc.city.pk, 'name': sc.city.name} for sc in saved]
+        city_pks = [sc.city.pk for sc in saved]
+
+        # Prayer times for all saved cities in the date window
+        prayer_times = {}
+        for pt in PrayerTime.objects.filter(city__in=city_pks, date__gte=start, date__lte=end):
+            key = f"{pt.city_id}_{pt.date.isoformat()}"
+            prayer_times[key] = {
+                'fajr':    pt.fajr.strftime('%H:%M'),
+                'zuhr':    pt.zuhr.strftime('%H:%M'),
+                'asr':     pt.asr.strftime('%H:%M'),
+                'maghrib': pt.maghrib.strftime('%H:%M'),
+                'isha':    pt.isha.strftime('%H:%M'),
+            }
+
+        context['today']             = today.isoformat()
+        context['dates_json']        = json.dumps(dates)
+        context['cities_json']       = json.dumps(cities)
+        context['prayer_times_json'] = json.dumps(prayer_times)
+        return context
 
 
 @login_required
@@ -231,11 +288,12 @@ def unsave_city(request, pk):
 
 @login_required
 def add_city(request):
-    '''Display a searchable list of world cities and add the selected one to the user's saved list.
+    '''Merged Cities page: shows the user's saved cities and lets them add a new one.
     On POST, calls the Aladhan timingsByCity API with the city name and country to retrieve
     coordinates, timezone, and today's prayer times. Creates City, SavedCity, and PrayerTime
     records as needed, then redirects to the map.'''
     error = None
+    profile, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         city_query = request.POST.get('city_query', '').strip()
@@ -247,7 +305,6 @@ def add_city(request):
         if not city_name:
             error = 'Please select or enter a city.'
         else:
-            profile, _ = Profile.objects.get_or_create(user=request.user)
             today = datetime.date.today()
             date_str = today.strftime('%d-%m-%Y')
             method = ALADHAN_METHOD.get(profile.calculation_method, 2)
@@ -299,10 +356,101 @@ def add_city(request):
             except Exception:
                 error = 'Could not connect to the prayer times service. Please try again.'
 
+    saved_cities = SavedCity.objects.filter(profile=profile).select_related('city').order_by('-date_added')
     return render(request, 'project/add_city.html', {
         'world_cities': WORLD_CITIES,
         'error': error,
+        'saved_cities': saved_cities,
     })
+
+
+@login_required
+def fetch_prayer_times_api(request):
+    '''AJAX endpoint: return prayer times for a city + date, fetching from Aladhan if not cached.
+    GET params: city (pk), date (YYYY-MM-DD).
+    Returns JSON {ok, fajr, zuhr, asr, maghrib, isha} or {ok: false, error}.'''
+    city_pk  = request.GET.get('city', '').strip()
+    date_str = request.GET.get('date', '').strip()
+
+    try:
+        target_date = datetime.date.fromisoformat(date_str)
+        city_pk_int = int(city_pk)
+    except (ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'Invalid parameters.'})
+
+    city = City.objects.filter(pk=city_pk_int).first()
+    if not city:
+        return JsonResponse({'ok': False, 'error': 'City not found.'})
+
+    # Get times — from cache or fresh from Aladhan
+    pt = PrayerTime.objects.filter(city=city, date=target_date).first()
+    if pt:
+        times = {
+            'fajr':    pt.fajr.strftime('%H:%M'),
+            'zuhr':    pt.zuhr.strftime('%H:%M'),
+            'asr':     pt.asr.strftime('%H:%M'),
+            'maghrib': pt.maghrib.strftime('%H:%M'),
+            'isha':    pt.isha.strftime('%H:%M'),
+        }
+    else:
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        method = ALADHAN_METHOD.get(profile.calculation_method, 2)
+        school = ALADHAN_SCHOOL.get(profile.madhab, 0)
+        api_date = target_date.strftime('%d-%m-%Y')
+        url = (
+            f"https://api.aladhan.com/v1/timings/{api_date}"
+            f"?latitude={city.latitude}&longitude={city.longitude}"
+            f"&method={method}&school={school}"
+        )
+        try:
+            with urllib.request.urlopen(url, timeout=10) as response:
+                data = json.loads(response.read().decode())
+            timings = data['data']['timings']
+            def clean(t): return t.split(' ')[0]
+
+            times = {
+                'fajr':    clean(timings['Fajr']),
+                'zuhr':    clean(timings['Dhuhr']),
+                'asr':     clean(timings['Asr']),
+                'maghrib': clean(timings['Maghrib']),
+                'isha':    clean(timings['Isha']),
+            }
+
+            try:
+                h = data['data']['date']['hijri']
+                HijriCalendar.objects.get_or_create(
+                    date=target_date,
+                    defaults={
+                        'hijri_day':   int(h['day']),
+                        'hijri_month': h['month']['en'],
+                        'hijri_year':  int(h['year']),
+                        'holiday_name': '',
+                    }
+                )
+            except Exception:
+                pass
+
+            PrayerTime.objects.create(
+                city=city,
+                date=target_date,
+                sunrise=clean(timings['Sunrise']),
+                **times,
+            )
+        except Exception:
+            return JsonResponse({'ok': False, 'error': 'Could not reach the prayer times service.'})
+
+    # Always include Hijri date if cached (covers both paths)
+    hijri = {}
+    hc = HijriCalendar.objects.filter(date=target_date).first()
+    if hc:
+        hijri = {
+            'hijri_day':    hc.hijri_day,
+            'hijri_month':  hc.hijri_month,
+            'hijri_year':   hc.hijri_year,
+            'holiday_name': hc.holiday_name,
+        }
+
+    return JsonResponse({'ok': True, **times, **hijri})
 
 
 def register(request):

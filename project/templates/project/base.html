@@ -14,8 +14,7 @@
         <ul>
             {% if user.is_authenticated %}
                 <li><a href="{% url 'map' %}">My Map</a></li>
-                <li><a href="{% url 'city_list' %}">Cities</a></li>
-                <li><a href="{% url 'add_city' %}">+ Add City</a></li>
+                <li><a href="{% url 'add_city' %}">Cities</a></li>
                 <li><a href="{% url 'calendar_list' %}">Calendar</a></li>
                 <li><a href="{% url 'profile_detail' %}">Profile</a></li>
                 <li>
@@ -31,17 +30,17 @@
         </ul>
     </nav>
 
+    {% block site_header %}
     <header>
         <h1>Muezzin</h1>
         <p>Your guide to accurate prayer times</p>
     </header>
+    {% endblock %}
 
     <main>
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <p>&copy; 2026 Muezzin &mdash; CS412</p>
-    </footer>
+
 </body>
 </html>

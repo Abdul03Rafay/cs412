@@ -14,6 +14,7 @@ from .views import (
     save_city,
     unsave_city,
     add_city,
+    fetch_prayer_times_api,
     register,
 )
 
@@ -27,6 +28,7 @@ urlpatterns = [
     path('profile/', ProfileDetailView.as_view(), name='profile_detail'),
     path('profile/update/', ProfileUpdateView.as_view(), name='profile_update'),
     path('calendar/', HijriCalendarListView.as_view(), name='calendar_list'),
+    path('api/prayer-times/', fetch_prayer_times_api, name='fetch_prayer_times_api'),
 
     # Authentication URLs
     path('login/', auth_views.LoginView.as_view(template_name='project/login.html'), name='login'),

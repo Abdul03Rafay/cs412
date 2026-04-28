@@ -1,7 +1,69 @@
 <!-- project/templates/project/hijricalendar_list.html -->
 {% extends 'project/base.html' %}
 
-{% block title %}Hijri Calendar — Muezzin{% endblock %}
+{% block title %}Calendar — Muezzin{% endblock %}
+
+{% block site_header %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .date-strip-wrapper {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        width: 100% !important;
+        padding-bottom: 8px;
+        margin-bottom: 1.5rem;
+        -webkit-overflow-scrolling: touch;
+    }
+    .date-strip {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        width: max-content !important;
+        min-width: 100%;
+        gap: 6px;
+        padding: 4px 2px;
+    }
+    .date-tile {
+        flex: 0 0 62px !important;
+        width: 62px !important;
+        min-width: 62px;
+        padding: 9px 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #e4e4e4;
+        background: #fff;
+        text-align: center;
+        cursor: pointer;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center;
+        gap: 2px;
+        transition: background 0.13s, border-color 0.13s;
+        box-sizing: border-box;
+    }
+    .date-tile:hover { border-color: #888; }
+    .date-tile-today { border-color: #333; }
+    .date-tile-active { background: #111 !important; border-color: #111 !important; color: #fff; }
+    .date-tile-active .dt-greg { color: rgba(255,255,255,0.5); }
+    .dt-day   { font-size: 1.1rem; font-weight: 400; line-height: 1.2; display: block; }
+    .dt-month { font-size: 0.65rem; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.3; display: block; }
+    .city-tile {
+        flex-shrink: 0;
+        padding: 8px 18px;
+        border-radius: 50px;
+        border: 1px solid #e4e4e4;
+        background: #fff;
+        font-size: 0.82rem;
+        color: #333;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.13s, border-color 0.13s, color 0.13s;
+        user-select: none;
+    }
+    .city-tile:hover { border-color: #888; color: #111; }
+    .city-tile-active { background: #111 !important; border-color: #111 !important; color: #fff !important; }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="list-container">
@@ -9,34 +71,209 @@
     <div class="page-header">
         <div>
             <h2>Hijri Calendar</h2>
-            <p class="page-meta">Gregorian to Hijri date mapping and Islamic holidays</p>
+            <p class="page-meta">Prayer times by Hijri date — scroll to navigate, select a city below</p>
         </div>
     </div>
 
-    {% if calendar_entries %}
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Gregorian Date</th>
-                    <th>Hijri Date</th>
-                    <th>Holiday / Event</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in calendar_entries %}
-                    <tr>
-                        <td>{{ entry.date }}</td>
-                        <td>{{ entry.hijri_day }} {{ entry.hijri_month }} {{ entry.hijri_year }}</td>
-                        <td>{{ entry.holiday_name|default:"&mdash;" }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
+    {% if cities_json == '[]' %}
         <div class="empty-state">
-            <p>No calendar data available yet.</p>
+            <p>No cities saved yet.</p>
+            <p><a href="{% url 'add_city' %}">Add a city</a> to see prayer times.</p>
         </div>
+    {% else %}
+
+    <!-- City strip -->
+    <div class="city-strip-wrapper" style="overflow-x:auto;width:100%;margin-bottom:1.25rem;">
+        <div class="city-strip" id="city-strip" style="display:flex;flex-wrap:nowrap;gap:6px;width:max-content;padding:4px 2px;"></div>
+    </div>
+
+    <!-- Horizontal date strip -->
+    <div class="date-strip-wrapper" style="overflow-x:auto;width:100%;padding-bottom:8px;margin-bottom:1.5rem;">
+        <div class="date-strip" id="date-strip" style="display:flex;flex-direction:row;flex-wrap:nowrap;width:max-content;gap:6px;padding:4px 2px;"></div>
+    </div>
+
+    <!-- Prayer time card -->
+    <div id="prayer-card"></div>
+
     {% endif %}
 
 </div>
+
+<script>
+    const datesData      = {{ dates_json|safe }};
+    const citiesData     = {{ cities_json|safe }};
+    const prayerData     = {{ prayer_times_json|safe }};
+    const todayIso       = '{{ today }}';
+
+    let selectedDate = todayIso;
+    let selectedCity = citiesData.length > 0 ? citiesData[0].pk : null;
+
+    /* ---- helpers ---- */
+    function firstWord(str) {
+        return str ? str.split(/[\s‘’ʾʿ]/)[0] : '';
+    }
+
+    function gregShort(iso) {
+        const d = new Date(iso + 'T12:00:00');
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    /* ---- city strip ---- */
+    function renderCityStrip() {
+        const strip = document.getElementById('city-strip');
+        strip.innerHTML = '';
+        citiesData.forEach(city => {
+            const tile = document.createElement('div');
+            tile.className = 'city-tile' + (city.pk == selectedCity ? ' city-tile-active' : '');
+            tile.textContent = city.name;
+            tile.addEventListener('click', () => {
+                selectedCity = city.pk;
+                renderCityStrip();
+                renderCard();
+            });
+            strip.appendChild(tile);
+        });
+    }
+
+    /* ---- date strip ---- */
+    function renderStrip() {
+        const strip = document.getElementById('date-strip');
+        strip.innerHTML = '';
+        datesData.forEach(d => {
+            const active  = d.gregorian === selectedDate;
+            const isToday = d.is_today;
+
+            const tile = document.createElement('div');
+            tile.className = 'date-tile'
+                + (active  ? ' date-tile-active'  : '')
+                + (isToday && !active ? ' date-tile-today' : '');
+            tile.dataset.date = d.gregorian;
+            tile.style.cssText = 'flex:0 0 62px;width:62px;display:flex;flex-direction:column;align-items:center;';
+
+            const gd = new Date(d.gregorian + 'T12:00:00');
+            const dayNum   = gd.getDate();
+            const monthStr = gd.toLocaleDateString('en-US', { month: 'short' });
+
+            tile.innerHTML =
+                `<span class="dt-day">${dayNum}</span>` +
+                `<span class="dt-month">${monthStr}</span>`;
+
+            tile.addEventListener('click', () => {
+                selectedDate = d.gregorian;
+                renderStrip();
+                renderCard();
+            });
+            strip.appendChild(tile);
+        });
+
+        const activeTile = strip.querySelector('.date-tile-active');
+        if (activeTile) {
+            setTimeout(() => activeTile.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' }), 0);
+        }
+    }
+
+    /* ---- card helpers ---- */
+    function cardMeta(city, dInfo) {
+        const cityName  = city ? city.name : '';
+        const hijriStr  = dInfo && dInfo.hijri_day
+            ? `${dInfo.hijri_day} ${dInfo.hijri_month} ${dInfo.hijri_year}`
+            : '';
+        const holiday   = dInfo && dInfo.holiday_name ? dInfo.holiday_name : '';
+        const gregStr   = new Date(selectedDate + 'T12:00:00')
+            .toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
+        return { cityName, hijriStr, holiday, gregStr };
+    }
+
+    function buildCard(cityName, gregStr, hijriStr, holiday, bodyHtml) {
+        return `<div class="cal-prayer-card">
+            <div class="cal-card-head">
+                <span class="cal-card-city">${cityName}</span>
+                <span class="cal-card-greg">${gregStr}</span>
+            </div>
+            ${hijriStr
+                ? `<div class="cal-card-hijri">${hijriStr}${holiday ? ` &mdash; <em>${holiday}</em>` : ''}</div>`
+                : ''}
+            ${bodyHtml}
+        </div>`;
+    }
+
+    /* ---- prayer card ---- */
+    function renderCard() {
+        const card = document.getElementById('prayer-card');
+        if (!selectedCity || !selectedDate) { card.innerHTML = ''; return; }
+
+        const key   = `${selectedCity}_${selectedDate}`;
+        const pt    = prayerData[key];
+        const city  = citiesData.find(c => c.pk == selectedCity);
+        const dInfo = datesData.find(d => d.gregorian === selectedDate);
+        const { cityName, hijriStr, holiday, gregStr } = cardMeta(city, dInfo);
+
+        if (pt) {
+            const rows = [['Fajr', pt.fajr], ['Zuhr', pt.zuhr], ['Asr', pt.asr], ['Maghrib', pt.maghrib], ['Isha', pt.isha]]
+                .map(([n, t]) => `<div class="cal-time-row"><span class="cal-time-label">${n}</span><span class="cal-time-val">${t}</span></div>`)
+                .join('');
+            card.innerHTML = buildCard(cityName, gregStr, hijriStr, holiday,
+                `<div class="cal-card-times">${rows}</div>`);
+            // Hijri date not yet cached — fetch in background so it appears without blocking the card
+            if (!dInfo || !dInfo.hijri_day) {
+                fetchTimes(selectedCity, selectedDate);
+            }
+        } else {
+            // No prayer times yet — show loading state and fetch everything
+            card.innerHTML = buildCard(cityName, gregStr, hijriStr, holiday,
+                `<p class="cal-empty-msg">Fetching prayer times…</p>`);
+            fetchTimes(selectedCity, selectedDate);
+        }
+    }
+
+    /* ---- auto-fetch from Aladhan via Django endpoint ---- */
+    async function fetchTimes(cityPk, date) {
+        const apiUrl = '{% url "fetch_prayer_times_api" %}?city=' + cityPk + '&date=' + date;
+        const setMsg = (text) => {
+            if (selectedCity != cityPk || selectedDate !== date) return;
+            const el = document.getElementById('prayer-card')?.querySelector('.cal-empty-msg');
+            if (el) el.textContent = text;
+        };
+        try {
+            const resp = await fetch(apiUrl);
+            let data;
+            try {
+                data = await resp.json();
+            } catch (parseErr) {
+                console.error('Prayer API returned non-JSON. Status:', resp.status, 'URL:', apiUrl);
+                setMsg(`Server error (${resp.status}). Please try again.`);
+                return;
+            }
+            if (selectedCity != cityPk || selectedDate !== date) return;
+            if (data.ok) {
+                prayerData[`${cityPk}_${date}`] = {
+                    fajr: data.fajr, zuhr: data.zuhr, asr: data.asr,
+                    maghrib: data.maghrib, isha: data.isha,
+                };
+                // Patch datesData with Hijri info returned by the API
+                if (data.hijri_day) {
+                    const entry = datesData.find(d => d.gregorian === date);
+                    if (entry) {
+                        entry.hijri_day    = data.hijri_day;
+                        entry.hijri_month  = data.hijri_month;
+                        entry.hijri_year   = data.hijri_year;
+                        entry.holiday_name = data.holiday_name || '';
+                    }
+                }
+                renderCard();
+            } else {
+                console.error('Prayer API error:', data.error);
+                setMsg(data.error || 'Could not fetch prayer times.');
+            }
+        } catch (e) {
+            console.error('Prayer API network error:', e);
+            setMsg('Network error — please try again.');
+        }
+    }
+
+    /* ---- init ---- */
+    renderCityStrip();
+    renderStrip();
+    renderCard();
+</script>
 {% endblock %}

@@ -6,24 +6,49 @@
 {% block content %}
 <div class="form-container">
 
-    <h2>Update Settings</h2>
+    <h2>Settings</h2>
     <p class="text-muted">Changes take effect on your next prayer time fetch.</p>
 
     <form method="POST" class="form-card">
         {% csrf_token %}
 
-        {% for field in form %}
-            <div class="form-group">
-                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                    <p class="form-hint">{{ field.help_text }}</p>
-                {% endif %}
-                {% if field.errors %}
-                    <div class="form-error">{{ field.errors }}</div>
-                {% endif %}
+        <div class="form-group">
+            <label class="form-label">Madhab</label>
+            <div class="toggle-group">
+                <input type="radio" name="madhab" id="madhab_standard" value="Standard"
+                    {% if form.madhab.value == 'Standard' or not form.madhab.value %}checked{% endif %}>
+                <label for="madhab_standard">Standard</label>
+                <input type="radio" name="madhab" id="madhab_hanafi" value="Hanafi"
+                    {% if form.madhab.value == 'Hanafi' %}checked{% endif %}>
+                <label for="madhab_hanafi">Hanafi</label>
             </div>
-        {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Calculation Method</label>
+            <div class="toggle-group toggle-group-col">
+                <input type="radio" name="calculation_method" id="method_isna" value="ISNA"
+                    {% if form.calculation_method.value == 'ISNA' or not form.calculation_method.value %}checked{% endif %}>
+                <label for="method_isna">ISNA</label>
+                <input type="radio" name="calculation_method" id="method_mwl" value="MWL"
+                    {% if form.calculation_method.value == 'MWL' %}checked{% endif %}>
+                <label for="method_mwl">MWL</label>
+                <input type="radio" name="calculation_method" id="method_egyptian" value="Egyptian"
+                    {% if form.calculation_method.value == 'Egyptian' %}checked{% endif %}>
+                <label for="method_egyptian">Egyptian</label>
+                <input type="radio" name="calculation_method" id="method_umm" value="UmmAlQura"
+                    {% if form.calculation_method.value == 'UmmAlQura' %}checked{% endif %}>
+                <label for="method_umm">Umm al-Qura</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="{{ form.display_language.id_for_label }}">Display Language</label>
+            {{ form.display_language }}
+            {% if form.display_language.errors %}
+                <div class="form-error">{{ form.display_language.errors }}</div>
+            {% endif %}
+        </div>
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Save Changes</button>

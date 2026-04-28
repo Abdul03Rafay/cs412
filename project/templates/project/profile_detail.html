@@ -17,10 +17,6 @@
             <span class="settings-value">{{ profile.user.username }}</span>
         </div>
         <div class="settings-row">
-            <span class="settings-label">Preferred City</span>
-            <span class="settings-value">{{ profile.city.name|default:"Not set" }}</span>
-        </div>
-        <div class="settings-row">
             <span class="settings-label">Madhab</span>
             <span class="settings-value">{{ profile.get_madhab_display }}</span>
         </div>
@@ -32,16 +28,12 @@
             <span class="settings-label">Display Language</span>
             <span class="settings-value">{{ profile.display_language }}</span>
         </div>
-        <div class="settings-row">
-            <span class="settings-label">Notifications</span>
-            <span class="settings-value">{{ profile.notification_preference|yesno:"Enabled,Disabled" }}</span>
-        </div>
     </div>
 
     <hr class="divider">
 
-    <div class="page-header" style="margin-bottom: 1.2rem;">
-        <h3 style="margin: 0;">Saved Cities</h3>
+    <div class="page-header">
+        <h3>Saved Cities</h3>
         <a href="{% url 'add_city' %}" class="btn btn-outline btn-sm">+ Add City</a>
     </div>
 
@@ -50,7 +42,7 @@
             {% for sc in saved_cities %}
                 <li>
                     <a href="{% url 'city_detail' sc.city.pk %}">{{ sc.city.name }}</a>
-                    <span style="display: flex; align-items: center; gap: 1rem;">
+                    <span class="item-list-actions">
                         <span class="text-muted text-small">{{ sc.date_added|date:"M j, Y" }}</span>
                         <form method="POST" action="{% url 'unsave_city' sc.city.pk %}">
                             {% csrf_token %}
