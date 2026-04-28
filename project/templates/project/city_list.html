@@ -1,0 +1,49 @@
+<!-- project/templates/project/city_list.html -->
+{% extends 'project/base.html' %}
+
+{% block title %}Cities — Muezzin{% endblock %}
+
+{% block content %}
+<div class="list-container">
+
+    <div class="page-header">
+        <h2>Cities</h2>
+        <a href="{% url 'add_city' %}" class="btn btn-primary btn-sm">+ Add New City</a>
+    </div>
+
+    <form method="GET" action="{% url 'city_list' %}" class="search-bar">
+        <input type="text" name="search" placeholder="Search cities..."
+               value="{{ request.GET.search|default:'' }}">
+        <button type="submit" class="btn btn-outline btn-sm">Search</button>
+        {% if request.GET.search %}
+            <a href="{% url 'city_list' %}" class="btn btn-ghost btn-sm">Clear</a>
+        {% endif %}
+    </form>
+
+    {% if cities %}
+        <ul class="item-list">
+            {% for city in cities %}
+                <li>
+                    <a href="{% url 'city_detail' city.pk %}">
+                        <strong>{{ city.name }}</strong>
+                        <span class="text-muted text-small">&nbsp;&nbsp;{{ city.latitude }}, {{ city.longitude }}</span>
+                    </a>
+                    {% if city.pk in saved_city_ids %}
+                        <span class="badge">&#10003;&nbsp; Saved</span>
+                    {% else %}
+                        <form method="POST" action="{% url 'save_city' city.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline btn-sm">+ Save</button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="empty-state">
+            <p>No cities found.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

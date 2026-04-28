@@ -1,0 +1,72 @@
+<!-- project/templates/project/profile_detail.html -->
+{% extends 'project/base.html' %}
+
+{% block title %}Profile — Muezzin{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+
+    <div class="page-header">
+        <h2>My Profile</h2>
+        <a href="{% url 'profile_update' %}" class="btn btn-primary btn-sm">Edit Settings</a>
+    </div>
+
+    <div class="card">
+        <div class="settings-row">
+            <span class="settings-label">Username</span>
+            <span class="settings-value">{{ profile.user.username }}</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Preferred City</span>
+            <span class="settings-value">{{ profile.city.name|default:"Not set" }}</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Madhab</span>
+            <span class="settings-value">{{ profile.get_madhab_display }}</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Calculation Method</span>
+            <span class="settings-value">{{ profile.get_calculation_method_display }}</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Display Language</span>
+            <span class="settings-value">{{ profile.display_language }}</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Notifications</span>
+            <span class="settings-value">{{ profile.notification_preference|yesno:"Enabled,Disabled" }}</span>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="page-header" style="margin-bottom: 1.2rem;">
+        <h3 style="margin: 0;">Saved Cities</h3>
+        <a href="{% url 'add_city' %}" class="btn btn-outline btn-sm">+ Add City</a>
+    </div>
+
+    {% if saved_cities %}
+        <ul class="item-list">
+            {% for sc in saved_cities %}
+                <li>
+                    <a href="{% url 'city_detail' sc.city.pk %}">{{ sc.city.name }}</a>
+                    <span style="display: flex; align-items: center; gap: 1rem;">
+                        <span class="text-muted text-small">{{ sc.date_added|date:"M j, Y" }}</span>
+                        <form method="POST" action="{% url 'unsave_city' sc.city.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% url 'profile_detail' %}">
+                            <button type="submit" class="btn btn-ghost btn-sm">Remove</button>
+                        </form>
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="empty-state">
+            <p>No cities saved yet.</p>
+            <p><a href="{% url 'add_city' %}">Add a city</a> to get started.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,157 +1,415 @@
-/* Define variables for consistent colors */
+/* ============================================================
+   styles.css — Muezzin / CS412 Shared Stylesheet
+   Author: Abdul Rafay (rafaya@bu.edu)
+   Updated: 4/27/2026
+   Description: Design system for the Muezzin prayer times app.
+                Minimal, type-driven aesthetic using Helvetica Neue.
+   ============================================================ */
+
+/* --- Custom Properties --- */
 :root {
-    --color-black: #000000;
-    --color-dark-grey: #333333;
-    --color-medium-grey: #888888;
-    --color-light-grey: #f2f2f2;
-    --color-white: #ffffff;
+    --black:        #000000;
+    --dark:         #111111;
+    --dark-grey:    #333333;
+    --mid-grey:     #888888;
+    --light-grey:   #f4f4f4;
+    --border:       #e4e4e4;
+    --white:        #ffffff;
+    --error:        #c0392b;
+    --error-bg:     #fdf0ee;
+    --error-border: #e8c4bf;
+
+    --font: "Helvetica Neue UltraLight", "Helvetica Neue Light",
+            "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+    --nav-h:   52px;
+    --radius:  6px;
+    --radius-s: 4px;
+    --shadow:  0 2px 12px rgba(0,0,0,0.07);
 }
 
+/* --- Reset --- */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* --- Base --- */
 body {
-    /* Prioritize Helvetica Neue UltraLight*/
-    font-family: "Helvetica Neue UltraLight", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-weight: 300; 
-    background-color: var(--color-white);
-    color: var(--color-dark-grey); /* Main text color */
+    font-family: var(--font);
+    font-weight: 300;
+    background: var(--white);
+    color: var(--dark-grey);
     margin: 0;
     padding: 0;
-    text-align: center;
-    line-height: 1.6; 
-    -webkit-font-smoothing: antialiased; 
-    -moz-osx-font-smoothing: grayscale; 
+    padding-top: var(--nav-h);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Adjust body/content to account for fixed nav */
-body {
-    padding-top: 60px; /* Space for the fixed navigation bar */
-}
-
+/* --- Navigation --- */
 nav {
-    background-color: var(--color-black);
-    padding: 0.8rem 0;
+    background: var(--black);
+    height: var(--nav-h);
     width: 100%;
-    position: fixed; /* Fixes nav to top */
-    top: 0;
-    left: 0;
-    z-index: 1000; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 nav ul {
     list-style: none;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     display: flex;
-    justify-content: center;
-    align-items: center; /* Vertically align nav items */
+    align-items: center;
+    gap: 0.15rem;
 }
 
-nav li {
-    margin: 0 1.5rem; /* More spacing between links for a cleaner look */
-}
+nav li { margin: 0; }
 
-nav a {
-    color: var(--color-white);
+nav a,
+nav button {
+    color: rgba(255,255,255,0.7);
+    background: none;
+    border: none;
+    font-family: var(--font);
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0.025em;
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-s);
+    cursor: pointer;
     text-decoration: none;
-    font-weight: 400; 
-    font-size: 1rem;
-    padding: 0.2rem 0; 
-    transition: color 0.3s ease-in-out; /* Smooth transition for hover */
+    display: inline-block;
+    transition: background 0.15s, color 0.15s;
 }
 
-nav a:hover {
-    color: var(--color-medium-grey); /* Subtle change on hover */
+nav a:hover,
+nav button:hover {
+    color: var(--white);
+    background: rgba(255,255,255,0.1);
+    text-decoration: none;
 }
 
-h1 {
-    font-size: 3rem; 
-    font-weight: 200; /* UltraLight weight for headings */
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    color: var(--color-black);
+nav form { display: inline; margin: 0; padding: 0; }
+
+/* --- Site Header --- */
+header {
+    text-align: center;
+    padding: 2rem 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
 }
 
-h2 {
-    font-size: 2.2rem;
+header h1 {
+    font-size: 1.6rem;
     font-weight: 200;
-    margin-top: 2rem;
-    margin-bottom: 0.8rem;
-    color: var(--color-dark-grey);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dark);
+    margin: 0 0 0.25rem;
 }
+
+header p {
+    font-size: 0.75rem;
+    color: var(--mid-grey);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0;
+    font-style: normal;
+    max-width: none;
+}
+
+/* --- Typography --- */
+h1 { font-size: 1.9rem; font-weight: 200; color: var(--dark); margin: 0 0 0.5rem; }
+h2 { font-size: 1.5rem; font-weight: 300; color: var(--dark); margin: 0 0 0.4rem; }
+h3 { font-size: 1rem; font-weight: 500; color: var(--dark-grey); margin: 0 0 1rem; letter-spacing: 0.02em; }
 
 p {
-    font-size: 1.2rem; 
-    margin: 0.8rem auto; /* Auto horizontal margin for centering */
-    max-width: 700px; 
-    color: var(--color-dark-grey);
+    font-size: 0.95rem;
+    color: var(--dark-grey);
+    margin: 0 0 0.8rem;
+    max-width: none;
+    font-style: normal;
 }
 
-p:first-of-type {
-    font-style: italic;
-    font-weight: 200; /* Keep it light */
-    max-width: 600px;
-}
+a { color: var(--dark-grey); text-decoration: none; transition: color 0.15s; }
+a:hover { color: var(--dark); text-decoration: underline; }
 
-p.quote-author { /* Added a class for specific author styling if needed */
-    font-size: 1rem;
-    color: var(--color-medium-grey); 
-    margin-top: 0.5rem;
-}
+/* --- Main & Page Containers --- */
+main { text-align: left; }
 
-a {
-    color: var(--color-dark-grey); 
-    text-decoration: none;
-    transition: color 0.3s ease-in-out;
-}
-
-a:hover {
-    color: var(--color-medium-grey); 
-    text-decoration: underline; 
-}
-
-/* Specific styles for images */
-img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px; /* Slightly rounded corners for a modern look */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Soft shadow for depth */
-    margin-top: 2rem; /* Space above image */
-    margin-bottom: 2rem; /* Space below image */
-}
-
-ul {
-    list-style: none; /* Remove default bullet points */
-    padding: 0;
-    margin: 1.5rem auto;
-    max-width: 800px; 
-}
-
-li {
-    font-size: 1.1rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--color-light-grey); /* Subtle line separator */
-    color: var(--color-dark-grey);
-}
-
-li:last-child {
-    border-bottom: none; /* No border for the last item */
-}
-
-/* Container for quote/image */
-div {
-    padding: 20px;
+.page-container,
+.list-container,
+.detail-container,
+.form-container {
+    max-width: 860px;
     margin: 0 auto;
-    max-width: 800px; 
+    padding: 2.5rem 2rem 4rem;
 }
 
-/* Specific styling for the main quote block on quote.html */
-.quote-container {
-    background-color: var(--color-white);
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-    margin-top: 50px;
+/* --- Page Header row (title + action) --- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.8rem;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
-.quote-container p {
-    font-weight: 200; 
+
+.page-meta {
+    font-size: 0.82rem;
+    color: var(--mid-grey);
+    margin: 0.2rem 0 0;
+    letter-spacing: 0.01em;
+}
+
+/* --- Divider --- */
+.divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+/* --- Card --- */
+.card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.75rem;
+}
+
+/* --- Global Form Inputs (no class needed) --- */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    font-family: var(--font);
+    font-size: 0.92rem;
+    color: var(--dark-grey);
+    background: var(--white);
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+    appearance: auto;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--mid-grey);
+}
+
+/* Checkbox stays native */
+input[type="checkbox"] { width: auto; padding: 0; }
+
+/* --- Form Helpers --- */
+.form-card {
+    max-width: 440px;
+    margin: 1.5rem auto 0;
+    padding: 1.75rem 2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.form-group { margin-bottom: 1.4rem; }
+
+.form-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.form-input {
+    /* inherits global input rules; class is for explicit use */
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    font-family: var(--font);
+    font-size: 0.92rem;
+    color: var(--dark-grey);
+    background: var(--white);
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.form-input:focus { outline: none; border-color: var(--mid-grey); }
+
+.form-hint { font-size: 0.78rem; color: var(--mid-grey); margin-top: 0.3rem; }
+.form-error { font-size: 0.8rem; color: var(--error); margin-top: 0.3rem; }
+.form-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; }
+
+/* --- Buttons --- */
+.btn {
+    display: inline-block;
+    padding: 0.55rem 1.2rem;
+    border-radius: var(--radius-s);
+    font-family: var(--font);
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    text-decoration: none;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.btn-primary { background: var(--dark); color: var(--white); border-color: var(--dark); }
+.btn-primary:hover { background: var(--dark-grey); border-color: var(--dark-grey); color: var(--white); text-decoration: none; }
+
+.btn-outline { background: transparent; color: var(--dark-grey); border-color: var(--border); }
+.btn-outline:hover { border-color: var(--mid-grey); color: var(--dark); text-decoration: none; }
+
+.btn-ghost { background: transparent; color: var(--mid-grey); border-color: transparent; }
+.btn-ghost:hover { color: var(--dark-grey); text-decoration: none; }
+
+.btn-sm { padding: 0.3rem 0.75rem; font-size: 0.8rem; }
+.btn-full { width: 100%; text-align: center; display: block; }
+
+/* --- Search Bar --- */
+.search-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+    max-width: 420px;
+}
+
+.search-bar input[type="text"] { flex: 1; }
+
+/* --- Item List --- */
+ul.item-list {
+    list-style: none;
+    padding: 0; margin: 0;
+}
+
+ul.item-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--light-grey);
+    font-size: 0.92rem;
+}
+
+ul.item-list li:last-child { border-bottom: none; }
+
+ul.item-list li form { margin: 0; }
+
+/* --- Data Table --- */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+
+.data-table th {
+    padding: 0.6rem 1rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--mid-grey);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--light-grey);
+    color: var(--dark-grey);
+}
+
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+/* --- Settings Display --- */
+.settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--light-grey);
+    font-size: 0.9rem;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-label { color: var(--mid-grey); }
+.settings-value { color: var(--dark); }
+
+/* --- Badge --- */
+.badge {
+    display: inline-block;
+    padding: 0.18rem 0.55rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    background: var(--light-grey);
+    color: var(--mid-grey);
+}
+
+/* --- Alert --- */
+.alert {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-s);
+    font-size: 0.88rem;
+    margin-bottom: 1.4rem;
+    text-align: left;
+}
+.alert-error { background: var(--error-bg); border: 1px solid var(--error-border); color: #922; }
+
+/* --- Empty State --- */
+.empty-state {
+    text-align: center;
+    padding: 3.5rem 2rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--mid-grey);
+}
+.empty-state p { font-size: 0.9rem; color: var(--mid-grey); margin: 0.3rem 0 0; }
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+}
+footer p {
+    font-size: 0.75rem;
+    color: var(--mid-grey);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* --- Utilities --- */
+.text-muted  { color: var(--mid-grey) !important; }
+.text-small  { font-size: 0.82rem; }
+.text-center { text-align: center; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.75rem; }
+
+/* --- Images --- */
+img { max-width: 100%; height: auto; border-radius: var(--radius-s); box-shadow: var(--shadow); }
+
+/* --- Legacy support for other apps --- */
+.quote-container {
+    background: var(--white);
+    padding: 40px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin: 50px auto;
+    max-width: 800px;
 }

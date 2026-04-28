@@ -1,0 +1,54 @@
+<!-- project/templates/project/add_city.html -->
+{% extends 'project/base.html' %}
+
+{% block title %}Add a City — Muezzin{% endblock %}
+
+{% block content %}
+<div class="form-container">
+
+    <h2>Add a City</h2>
+    <p class="text-muted">
+        Search from ~350 major world cities, or type any city name.
+        Prayer times are fetched live from the Aladhan API using your profile preferences.
+    </p>
+
+    {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" class="form-card">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label class="form-label" for="city_query">City</label>
+            <input
+                type="text"
+                name="city_query"
+                id="city_query"
+                list="cities-datalist"
+                class="form-input"
+                placeholder="e.g. London, United Kingdom"
+                autocomplete="off"
+                required
+            >
+            <datalist id="cities-datalist">
+                {% for city in world_cities %}
+                    <option value="{{ city }}">
+                {% endfor %}
+            </datalist>
+            <p class="form-hint">
+                Not in the list? Type any city in "City, Country" format — the API will look it up.
+            </p>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">
+            Fetch Prayer Times &amp; Save City
+        </button>
+    </form>
+
+    <p class="text-center mt-2">
+        <a href="{% url 'city_list' %}" class="btn btn-ghost">&larr; Back to cities</a>
+    </p>
+
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+<!-- project/templates/project/map.html -->
+{% extends 'project/base.html' %}
+
+{% block title %}My Map — Muezzin{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map {
+            width: 100%;
+            height: calc(100vh - 240px);
+            min-height: 420px;
+            border-radius: 6px;
+            border: 1px solid var(--border, #e4e4e4);
+        }
+
+        /* Prayer time popup card */
+        .leaflet-popup-content-wrapper {
+            border-radius: 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            padding: 0;
+            overflow: hidden;
+        }
+        .leaflet-popup-content { margin: 0; width: 220px !important; }
+        .leaflet-popup-tip-container { display: none; }
+
+        .prayer-card { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+        .prayer-card-header {
+            background: #111;
+            color: #fff;
+            padding: 10px 14px 9px;
+        }
+        .prayer-card-header h4 {
+            margin: 0 0 2px;
+            font-size: 0.95rem;
+            font-weight: 400;
+            letter-spacing: 0.03em;
+        }
+        .prayer-card-header span { font-size: 0.72rem; color: #aaa; letter-spacing: 0.04em; text-transform: uppercase; }
+
+        .prayer-card-body { padding: 10px 14px 12px; }
+
+        .prayer-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #f4f4f4;
+        }
+        .prayer-row:last-child { border-bottom: none; }
+        .prayer-label { color: #888; }
+        .prayer-time  { font-weight: 500; color: #111; }
+
+        .prayer-card-footer {
+            padding: 8px 14px 10px;
+            border-top: 1px solid #f4f4f4;
+            text-align: center;
+        }
+        .prayer-card-footer a { font-size: 0.8rem; color: #888; text-decoration: none; }
+        .prayer-card-footer a:hover { color: #333; }
+
+        .no-times { padding: 10px 14px 12px; font-size: 0.82rem; color: #888; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+
+    <div class="page-header">
+        <div>
+            <h2>My Cities</h2>
+            <p class="page-meta">{{ today|date:"l, F j, Y" }}</p>
+        </div>
+        <a href="{% url 'add_city' %}" class="btn btn-primary btn-sm">+ Add a City</a>
+    </div>
+
+    {% if cities_json != '[]' %}
+        <div id="map"></div>
+    {% else %}
+        <div class="empty-state">
+            <p>No cities saved yet.</p>
+            <p><a href="{% url 'add_city' %}">Add a city</a> to see it pinned on your map.</p>
+        </div>
+    {% endif %}
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const citiesData = {{ cities_json|safe }};
+
+    if (citiesData.length > 0) {
+        const map = L.map('map', { zoomControl: true });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19,
+        }).addTo(map);
+
+        const bounds = [];
+
+        citiesData.forEach(city => {
+            const marker = L.marker([city.lat, city.lon]).addTo(map);
+
+            let timesHtml = '';
+            if (city.prayer_times) {
+                const prayers = [
+                    ['Fajr',    city.prayer_times.fajr],
+                    ['Zuhr',    city.prayer_times.zuhr],
+                    ['Asr',     city.prayer_times.asr],
+                    ['Maghrib', city.prayer_times.maghrib],
+                    ['Isha',    city.prayer_times.isha],
+                ];
+                timesHtml = `<div class="prayer-card-body">` +
+                    prayers.map(([label, time]) =>
+                        `<div class="prayer-row">
+                            <span class="prayer-label">${label}</span>
+                            <span class="prayer-time">${time}</span>
+                        </div>`
+                    ).join('') +
+                `</div>`;
+            } else {
+                timesHtml = `<div class="no-times">No prayer times fetched for today.</div>`;
+            }
+
+            const popupHtml = `
+                <div class="prayer-card">
+                    <div class="prayer-card-header">
+                        <h4>${city.name}</h4>
+                        <span>Today&rsquo;s Prayer Times</span>
+                    </div>
+                    ${timesHtml}
+                    <div class="prayer-card-footer">
+                        <a href="/project/city/${city.pk}/">View full schedule &rarr;</a>
+                    </div>
+                </div>`;
+
+            marker.bindPopup(popupHtml, { maxWidth: 240, closeButton: false, autoPan: false });
+
+            let closeTimer;
+            marker.on('mouseover', function () {
+                clearTimeout(closeTimer);
+                this.openPopup();
+            });
+            marker.on('mouseout', function () {
+                const self = this;
+                closeTimer = setTimeout(() => self.closePopup(), 350);
+            });
+
+            marker.getPopup()?.on('add', function () {
+                const el = this.getElement();
+                if (el) {
+                    el.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+                    el.addEventListener('mouseleave', () => {
+                        closeTimer = setTimeout(() => marker.closePopup(), 350);
+                    });
+                }
+            });
+
+            bounds.push([city.lat, city.lon]);
+        });
+
+        if (bounds.length === 1) {
+            map.setView(bounds[0], 10);
+        } else {
+            map.fitBounds(bounds, { padding: [60, 60] });
+        }
+    }
+</script>
+{% endblock %}

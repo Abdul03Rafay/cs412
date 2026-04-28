@@ -1,0 +1,42 @@
+<!-- project/templates/project/hijricalendar_list.html -->
+{% extends 'project/base.html' %}
+
+{% block title %}Hijri Calendar — Muezzin{% endblock %}
+
+{% block content %}
+<div class="list-container">
+
+    <div class="page-header">
+        <div>
+            <h2>Hijri Calendar</h2>
+            <p class="page-meta">Gregorian to Hijri date mapping and Islamic holidays</p>
+        </div>
+    </div>
+
+    {% if calendar_entries %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Gregorian Date</th>
+                    <th>Hijri Date</th>
+                    <th>Holiday / Event</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in calendar_entries %}
+                    <tr>
+                        <td>{{ entry.date }}</td>
+                        <td>{{ entry.hijri_day }} {{ entry.hijri_month }} {{ entry.hijri_year }}</td>
+                        <td>{{ entry.holiday_name|default:"&mdash;" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state">
+            <p>No calendar data available yet.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

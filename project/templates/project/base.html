@@ -1,0 +1,47 @@
+<!-- project/templates/project/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Muezzin{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <ul>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'map' %}">My Map</a></li>
+                <li><a href="{% url 'city_list' %}">Cities</a></li>
+                <li><a href="{% url 'add_city' %}">+ Add City</a></li>
+                <li><a href="{% url 'calendar_list' %}">Calendar</a></li>
+                <li><a href="{% url 'profile_detail' %}">Profile</a></li>
+                <li>
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+            {% else %}
+                <li><a href="{% url 'register' %}">Register</a></li>
+                <li><a href="{% url 'login' %}">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <header>
+        <h1>Muezzin</h1>
+        <p>Your guide to accurate prayer times</p>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Muezzin &mdash; CS412</p>
+    </footer>
+</body>
+</html>

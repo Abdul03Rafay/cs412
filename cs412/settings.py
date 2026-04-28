@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'dadjokes',
     'rest_framework',
     'rest_framework.authtoken',
+    'project',
 ]
 
 MIDDLEWARE = [
@@ -149,3 +150,8 @@ CS_DEPLOYMENT_HOSTNAME = 'cs-webapps.bu.edu'
 if socket.gethostname() == CS_DEPLOYMENT_HOSTNAME:
     STATIC_URL = '/rafaya/static/'
     MEDIA_URL = '/rafaya/media/'
+
+# Authentication Settings
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'map'
+LOGOUT_REDIRECT_URL = 'login'

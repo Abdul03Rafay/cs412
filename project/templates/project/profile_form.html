@@ -1,0 +1,35 @@
+<!-- project/templates/project/profile_form.html -->
+{% extends 'project/base.html' %}
+
+{% block title %}Update Settings — Muezzin{% endblock %}
+
+{% block content %}
+<div class="form-container">
+
+    <h2>Update Settings</h2>
+    <p class="text-muted">Changes take effect on your next prayer time fetch.</p>
+
+    <form method="POST" class="form-card">
+        {% csrf_token %}
+
+        {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <p class="form-hint">{{ field.help_text }}</p>
+                {% endif %}
+                {% if field.errors %}
+                    <div class="form-error">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{% url 'profile_detail' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
