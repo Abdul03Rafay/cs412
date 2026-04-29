@@ -579,62 +579,82 @@ footer p {
 .dt-month { font-size: 0.65rem; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.3; }
 
 /* --- Calendar: prayer time card --- */
-.cal-prayer-card {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    max-width: 380px;
+/* Calendar section — flat, no card box */
+.cal-date-heading {
+    font-size: 0.8rem;
+    color: var(--mid-grey);
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.01em;
 }
+.cal-date-heading em { font-style: normal; color: var(--dark-grey); }
 
-.cal-card-head {
-    background: var(--dark);
-    color: var(--white);
-    padding: 14px 18px 12px;
+.cal-next-hero {
+    text-align: center;
+    padding: 1.5rem 0 2rem;
+    margin-bottom: 0.5rem;
 }
-
-.cal-card-city {
+.cal-live-clock {
     display: block;
-    font-size: 0.95rem;
+    font-size: 5.5rem;
+    font-weight: 300;
+    color: var(--dark);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.25rem;
+}
+.cal-clock-sec {
+    font-size: 0.55em;
+    color: #aaa;
+    letter-spacing: 0;
+}
+.cal-next-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+.cal-next-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #bbb;
+}
+.cal-next-name {
+    font-size: 1.4rem;
     font-weight: 400;
+    color: var(--dark);
+    line-height: 1.1;
 }
-
-.cal-card-greg {
-    display: block;
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.55);
-    margin-top: 3px;
-    letter-spacing: 0.02em;
+.cal-next-meta {
+    font-size: 0.85rem;
+    color: #1a5c40;
 }
-
-.cal-card-hijri {
-    padding: 8px 18px;
+.cal-holiday-note {
     font-size: 0.78rem;
     color: var(--mid-grey);
-    border-bottom: 1px solid var(--light-grey);
-    letter-spacing: 0.02em;
+    font-style: italic;
+    margin-bottom: 0.75rem;
 }
 
-.cal-card-hijri em { font-style: normal; color: var(--dark-grey); }
-
-.cal-card-times { padding: 6px 18px 14px; }
-
+.cal-time-list { border-top: 1px solid var(--border); }
 .cal-time-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 7px 0;
+    padding: 9px 0;
     border-bottom: 1px solid var(--light-grey);
-    font-size: 0.86rem;
+    font-size: 0.88rem;
 }
-
 .cal-time-row:last-child { border-bottom: none; }
 .cal-time-label { color: var(--mid-grey); }
-.cal-time-val   { font-weight: 500; color: var(--dark); font-variant-numeric: tabular-nums; }
+.cal-time-val   { color: var(--dark); font-variant-numeric: tabular-nums; }
+.cal-time-label-dim { color: #ccc; }
 
 .cal-empty-msg {
     font-size: 0.82rem;
     color: var(--mid-grey);
-    padding: 16px 18px;
+    padding: 16px 0;
     margin: 0;
     line-height: 1.6;
 }

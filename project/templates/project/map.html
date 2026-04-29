@@ -125,13 +125,14 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const citiesData = {{ cities_json|safe }};
+    const citiesData    = {{ cities_json|safe }};
+    const homeCityPk    = {{ home_city_pk|default:"null" }};
     const cityDetailUrlTpl = "{% url 'city_detail' pk=0 %}";
 
     if (citiesData.length > 0) {
         const map = L.map('map', { zoomControl: true });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
             maxZoom: 19,
@@ -254,7 +255,8 @@
         const bar = document.getElementById('next-prayer-bar');
         if (!bar) return;
 
-        const city = citiesData.find(c => c.prayer_times);
+        const city = (homeCityPk && citiesData.find(c => c.pk === homeCityPk && c.prayer_times))
+            || citiesData.find(c => c.prayer_times);
         if (!city) return;
 
         const pt    = city.prayer_times;

@@ -87,7 +87,8 @@ class MapView(LoginRequiredMixin, TemplateView):
                 } if pt else None,
             })
 
-        context['cities_json'] = json.dumps(cities_data)
+        context['cities_json']    = json.dumps(cities_data)
+        context['home_city_pk']   = profile.city.pk if profile.city else None
         context['today'] = today
         return context
 

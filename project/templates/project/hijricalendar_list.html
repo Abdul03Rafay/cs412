@@ -42,8 +42,9 @@
         box-sizing: border-box;
     }
     .date-tile:hover { border-color: #888; }
+    .date-tile-past  { opacity: 0.38; }
     .date-tile-today { border-color: #333; }
-    .date-tile-active { background: #111 !important; border-color: #111 !important; color: #fff; }
+    .date-tile-active { background: #111 !important; border-color: #111 !important; color: #fff; opacity: 1 !important; }
     .date-tile-active .dt-greg { color: rgba(255,255,255,0.5); }
     .dt-day   { font-size: 1.1rem; font-weight: 400; line-height: 1.2; display: block; }
     .dt-month { font-size: 0.65rem; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.3; display: block; }
@@ -64,9 +65,39 @@
     .city-tile-active { background: #111 !important; border-color: #111 !important; color: #fff !important; }
 
     /* Next upcoming prayer row (today only) */
-    .cal-time-row-next { background: #f4f4f4; margin: 0 -18px; padding-left: 18px; padding-right: 18px; }
     .cal-time-row-next .cal-time-label { color: #1a5c40; }
     .cal-time-row-next .cal-time-val   { color: #1a5c40; }
+
+    /* Temporal label for non-today dates */
+    .cal-temporal-label {
+        font-size: 0.78rem;
+        color: #bbb;
+        margin: 0 0 1rem;
+        letter-spacing: 0.03em;
+    }
+
+    /* Month context bar */
+    #month-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.8rem; min-height: 22px; }
+    #month-bar-greg  { color: #333; }
+    #month-bar-sep   { color: #ddd; }
+    #month-bar-hijri { color: #999; }
+    #today-btn {
+        margin-left: auto;
+        padding: 3px 12px;
+        border-radius: 50px;
+        border: 1px solid #e4e4e4;
+        background: #fff;
+        font-size: 0.75rem;
+        color: #555;
+        cursor: pointer;
+        display: none;
+        transition: border-color 0.13s, color 0.13s;
+    }
+    #today-btn:hover { border-color: #888; color: #111; }
+
+    /* Holiday dot */
+    .dt-holiday-dot { display: block; width: 4px; height: 4px; border-radius: 50%; background: #1a5c40; margin-top: 2px; }
+    .date-tile-active .dt-holiday-dot { background: rgba(255,255,255,0.6); }
 </style>
 {% endblock %}
 
@@ -90,6 +121,14 @@
     <!-- City strip -->
     <div class="city-strip-wrapper" style="overflow-x:auto;width:100%;margin-bottom:1.25rem;">
         <div class="city-strip" id="city-strip" style="display:flex;flex-wrap:nowrap;gap:6px;width:max-content;padding:4px 2px;"></div>
+    </div>
+
+    <!-- Month context bar -->
+    <div id="month-bar">
+        <span id="month-bar-greg"></span>
+        <span id="month-bar-sep">·</span>
+        <span id="month-bar-hijri"></span>
+        <button id="today-btn">Today</button>
     </div>
 
     <!-- Horizontal date strip -->
@@ -157,22 +196,50 @@
     function makeTile(d) {
         const active  = d.gregorian === selectedDate;
         const isToday = d.is_today;
+        const isPast  = !isToday && d.gregorian < todayIso;
         const tile = document.createElement('div');
         tile.className = 'date-tile'
             + (active  ? ' date-tile-active'  : '')
-            + (isToday && !active ? ' date-tile-today' : '');
+            + (isToday && !active ? ' date-tile-today' : '')
+            + (isPast  && !active ? ' date-tile-past'  : '');
         tile.dataset.date = d.gregorian;
         tile.style.cssText = 'flex:0 0 62px;width:62px;display:flex;flex-direction:column;align-items:center;';
         const gd = new Date(d.gregorian + 'T12:00:00');
         tile.innerHTML =
             `<span class="dt-day">${gd.getDate()}</span>` +
             `<span class="dt-month">${gd.toLocaleDateString('en-US', { month: 'short' })}</span>`;
+        if (d.holiday_name) {
+            const dot = document.createElement('span');
+            dot.className = 'dt-holiday-dot';
+            tile.appendChild(dot);
+        }
         tile.addEventListener('click', () => {
             selectedDate = d.gregorian;
             renderStrip();
             renderCard();
         });
         return tile;
+    }
+
+    /* ---- month bar + today button ---- */
+    function updateMonthBar() {
+        const gd = new Date(selectedDate + 'T12:00:00');
+        document.getElementById('month-bar-greg').textContent =
+            gd.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        const dInfo   = datesData.find(e => e.gregorian === selectedDate);
+        const hijriEl = document.getElementById('month-bar-hijri');
+        const sepEl   = document.getElementById('month-bar-sep');
+        if (dInfo && dInfo.hijri_month && dInfo.hijri_year) {
+            hijriEl.textContent  = `${dInfo.hijri_month} ${dInfo.hijri_year}`;
+            sepEl.style.display  = '';
+        } else {
+            hijriEl.textContent  = '';
+            sepEl.style.display  = 'none';
+        }
+
+        document.getElementById('today-btn').style.display =
+            selectedDate !== todayIso ? 'block' : 'none';
     }
 
     function renderStrip() {
@@ -203,44 +270,62 @@
         }
     }
 
-    /* ---- card helpers ---- */
-    function cardMeta(city, dInfo) {
-        const cityName  = city ? city.name : '';
-        const hijriStr  = dInfo && dInfo.hijri_day
-            ? `${dInfo.hijri_day} ${dInfo.hijri_month} ${dInfo.hijri_year}`
-            : '';
-        const holiday   = dInfo && dInfo.holiday_name ? dInfo.holiday_name : '';
-        const gregStr   = new Date(selectedDate + 'T12:00:00')
-            .toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
-        return { cityName, hijriStr, holiday, gregStr };
+    /* ---- prayer section ---- */
+    function currentTimeStr() {
+        const now = new Date();
+        const hm  = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        const s   = String(now.getSeconds()).padStart(2, '0');
+        return `${hm}<span class="cal-clock-sec">:${s}</span>`;
     }
 
-    function buildCard(cityName, gregStr, hijriStr, holiday, bodyHtml) {
-        return `<div class="cal-prayer-card">
-            <div class="cal-card-head">
-                <span class="cal-card-city">${cityName}</span>
-                <span class="cal-card-greg">${gregStr}</span>
-            </div>
-            ${hijriStr
-                ? `<div class="cal-card-hijri">${hijriStr}${holiday ? ` &mdash; <em>${holiday}</em>` : ''}</div>`
-                : ''}
-            ${bodyHtml}
-        </div>`;
-    }
-
-    /* ---- prayer card ---- */
     function renderCard() {
         const card = document.getElementById('prayer-card');
         if (!selectedCity || !selectedDate) { card.innerHTML = ''; return; }
 
         const key   = `${selectedCity}_${selectedDate}`;
         const pt    = prayerData[key];
-        const city  = citiesData.find(c => c.pk == selectedCity);
         const dInfo = datesData.find(d => d.gregorian === selectedDate);
-        const { cityName, hijriStr, holiday, gregStr } = cardMeta(city, dInfo);
+        const holiday = dInfo && dInfo.holiday_name ? dInfo.holiday_name : '';
+        const holidayHtml = holiday ? `<div class="cal-holiday-note">${holiday}</div>` : '';
 
         if (pt) {
             const nextPrayer = selectedDate === todayIso ? getNextPrayer(pt) : null;
+
+            // Temporal label — shown on non-today dates
+            let temporalHtml = '';
+            if (selectedDate !== todayIso) {
+                const diff = Math.round(
+                    (new Date(selectedDate + 'T12:00:00') - new Date(todayIso + 'T12:00:00'))
+                    / (1000 * 60 * 60 * 24)
+                );
+                const label = diff > 0
+                    ? `in ${diff} day${diff === 1 ? '' : 's'}`
+                    : `${Math.abs(diff)} day${Math.abs(diff) === 1 ? '' : 's'} ago`;
+                temporalHtml = `<p class="cal-temporal-label">${label}</p>`;
+            }
+
+            // Hero: live clock + next prayer — only for today
+            let heroHtml = '';
+            if (nextPrayer) {
+                const timeMap  = { Fajr: pt.fajr, Zuhr: pt.zuhr, Asr: pt.asr, Maghrib: pt.maghrib, Isha: pt.isha };
+                const nextTime = timeMap[nextPrayer];
+                const [nh, nm] = nextTime.split(':').map(Number);
+                const now      = new Date();
+                let diff       = (nh * 60 + nm) - (now.getHours() * 60 + now.getMinutes());
+                if (diff <= 0) diff += 24 * 60;
+                const countdown = diff >= 60
+                    ? `${Math.floor(diff / 60)} h ${diff % 60} m`
+                    : `${diff} m`;
+                heroHtml = `<div class="cal-next-hero">
+                    <span class="cal-live-clock" id="cal-live-clock">${currentTimeStr()}</span>
+                    <div class="cal-next-info">
+                        <span class="cal-next-label">Next prayer</span>
+                        <span class="cal-next-name">${nextPrayer}</span>
+                        <span class="cal-next-meta">${nextTime} &middot; in ${countdown}</span>
+                    </div>
+                </div>`;
+            }
+
             const prayerList = [
                 ['Fajr', pt.fajr, false], ['Sunrise', pt.sunrise, true],
                 ['Zuhr', pt.zuhr, false], ['Asr', pt.asr, false],
@@ -248,28 +333,35 @@
             ];
             const rows = prayerList
                 .map(([n, t, skip]) => {
-                    const cls = (!skip && n === nextPrayer) ? ' cal-time-row-next' : '';
+                    const cls      = (!skip && n === nextPrayer) ? ' cal-time-row-next' : '';
                     const labelCls = skip ? ' cal-time-label-dim' : '';
-                    return `<div class="cal-time-row${cls}"><span class="cal-time-label${labelCls}">${n}</span><span class="cal-time-val">${t}</span></div>`;
+                    return `<div class="cal-time-row${cls}">
+                        <span class="cal-time-label${labelCls}">${n}</span>
+                        <span class="cal-time-val">${t}</span>
+                    </div>`;
                 })
                 .join('');
-            card.innerHTML = buildCard(cityName, gregStr, hijriStr, holiday,
-                `<div class="cal-card-times">${rows}</div>`);
-            // Hijri date not yet cached — fetch in background so it appears without blocking the card
-            if (!dInfo || !dInfo.hijri_day) {
-                fetchTimes(selectedCity, selectedDate);
-            }
+
+            card.innerHTML = heroHtml + temporalHtml + holidayHtml + `<div class="cal-time-list">${rows}</div>`;
+
+            if (!dInfo || !dInfo.hijri_day) fetchTimes(selectedCity, selectedDate);
         } else {
-            // No prayer times yet — show loading state and fetch everything
-            card.innerHTML = buildCard(cityName, gregStr, hijriStr, holiday,
-                `<p class="cal-empty-msg">Fetching prayer times…</p>`);
+            card.innerHTML = holidayHtml + `<p class="cal-empty-msg">Fetching prayer times…</p>`;
             fetchTimes(selectedCity, selectedDate);
         }
+        updateMonthBar();
     }
 
     /* ---- auto-fetch from Aladhan via Django endpoint ---- */
     async function fetchTimes(cityPk, date) {
         const apiUrl = '{% url "fetch_prayer_times_api" %}?city=' + cityPk + '&date=' + date;
+        const setError = (text) => {
+            if (selectedCity != cityPk || selectedDate !== date) return;
+            const el = document.getElementById('prayer-card')?.querySelector('.cal-empty-msg');
+            if (el) el.innerHTML = `${text} <a href="#" class="cal-retry-link" style="color:#1a5c40;text-decoration:underline;">Retry</a>`;
+            const retry = document.getElementById('prayer-card')?.querySelector('.cal-retry-link');
+            if (retry) retry.addEventListener('click', (e) => { e.preventDefault(); renderCard(); });
+        };
         const setMsg = (text) => {
             if (selectedCity != cityPk || selectedDate !== date) return;
             const el = document.getElementById('prayer-card')?.querySelector('.cal-empty-msg');
@@ -282,7 +374,7 @@
                 data = await resp.json();
             } catch (parseErr) {
                 console.error('Prayer API returned non-JSON. Status:', resp.status, 'URL:', apiUrl);
-                setMsg(`Server error (${resp.status}). Please try again.`);
+                setError(`Server error (${resp.status}).`);
                 return;
             }
             if (selectedCity != cityPk || selectedDate !== date) return;
@@ -299,16 +391,25 @@
                         entry.hijri_month  = data.hijri_month;
                         entry.hijri_year   = data.hijri_year;
                         entry.holiday_name = data.holiday_name || '';
+                        // Add holiday dot to the tile without a full strip re-render
+                        if (data.holiday_name) {
+                            const tile = document.querySelector(`.date-tile[data-date="${date}"]`);
+                            if (tile && !tile.querySelector('.dt-holiday-dot')) {
+                                const dot = document.createElement('span');
+                                dot.className = 'dt-holiday-dot';
+                                tile.appendChild(dot);
+                            }
+                        }
                     }
                 }
                 renderCard();
             } else {
                 console.error('Prayer API error:', data.error);
-                setMsg(data.error || 'Could not fetch prayer times.');
+                setError(data.error || 'Could not fetch prayer times.');
             }
         } catch (e) {
             console.error('Prayer API network error:', e);
-            setMsg('Network error — please try again.');
+            setError('Network error.');
         }
     }
 
@@ -316,6 +417,37 @@
     renderCityStrip();
     renderStrip();
     renderCard();
+
+    document.getElementById('today-btn').addEventListener('click', () => {
+        selectedDate = todayIso;
+        renderStrip();
+        renderCard();
+    });
+
+    /* ---- live clock: tick every second ---- */
+    setInterval(() => {
+        const el = document.getElementById('cal-live-clock');
+        if (el) el.innerHTML = currentTimeStr();
+    }, 1000);
+
+    /* ---- countdown: refresh every minute, full re-render if prayer changed ---- */
+    setInterval(() => {
+        if (selectedDate !== todayIso) return;
+        const pt = prayerData[`${selectedCity}_${selectedDate}`];
+        if (!pt) return;
+        const nextPrayer = getNextPrayer(pt);
+        const nameEl = document.querySelector('.cal-next-name');
+        if (!nameEl || nameEl.textContent !== nextPrayer) { renderCard(); return; }
+        const timeMap  = { Fajr: pt.fajr, Zuhr: pt.zuhr, Asr: pt.asr, Maghrib: pt.maghrib, Isha: pt.isha };
+        const nextTime = timeMap[nextPrayer];
+        const [nh, nm] = nextTime.split(':').map(Number);
+        const now      = new Date();
+        let diff       = (nh * 60 + nm) - (now.getHours() * 60 + now.getMinutes());
+        if (diff <= 0) diff += 24 * 60;
+        const countdown = diff >= 60 ? `${Math.floor(diff / 60)} h ${diff % 60} m` : `${diff} m`;
+        const metaEl = document.querySelector('.cal-next-meta');
+        if (metaEl) metaEl.textContent = `${nextTime} · in ${countdown}`;
+    }, 60000);
 
     /* ---- infinite scroll: append 30 days when near the right edge ---- */
     let stripExtending = false;

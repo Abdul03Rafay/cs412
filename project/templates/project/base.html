@@ -14,9 +14,9 @@
     <nav>
         <ul>
             {% if user.is_authenticated %}
-                <li><a href="{% url 'map' %}"{% if request.resolver_match.url_name == 'map' %} class="nav-active"{% endif %}>My Map</a></li>
-                <li><a href="{% url 'add_city' %}"{% if request.resolver_match.url_name == 'add_city' or request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'city_detail' %} class="nav-active"{% endif %}>Cities</a></li>
                 <li><a href="{% url 'calendar_list' %}"{% if request.resolver_match.url_name == 'calendar_list' %} class="nav-active"{% endif %}>Calendar</a></li>
+                <li><a href="{% url 'map' %}"{% if request.resolver_match.url_name == 'map' %} class="nav-active"{% endif %}>Map</a></li>
+                <li><a href="{% url 'add_city' %}"{% if request.resolver_match.url_name == 'add_city' or request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'city_detail' %} class="nav-active"{% endif %}>Cities</a></li>
                 <li><a href="{% url 'profile_detail' %}"{% if request.resolver_match.url_name == 'profile_detail' or request.resolver_match.url_name == 'profile_update' %} class="nav-active"{% endif %}>Profile</a></li>
                 <li>
                     <form action="{% url 'logout' %}" method="post">

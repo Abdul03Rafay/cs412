@@ -153,5 +153,5 @@ if socket.gethostname() == CS_DEPLOYMENT_HOSTNAME:
 
 # Authentication Settings
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'map'
+LOGIN_REDIRECT_URL = 'calendar_list'
 LOGOUT_REDIRECT_URL = 'login'
