@@ -3,6 +3,45 @@
 
 {% block title %}{{ city.name }} — Muezzin{% endblock %}
 
+{% block extra_head %}
+<style>
+    tr.today-row td  { background: #fafafa; }
+    td.next-prayer   { color: #1a5c40; }
+
+    .today-hero { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+
+    .today-hero-pill {
+        flex: 1;
+        min-width: 76px;
+        padding: 0.75rem 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        text-align: center;
+        background: var(--white);
+        transition: background 0.13s, border-color 0.13s;
+    }
+    .today-prayer-name {
+        display: block;
+        font-size: 0.62rem;
+        font-weight: 500;
+        color: var(--mid-grey);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.3rem;
+    }
+    .today-prayer-time {
+        display: block;
+        font-size: 0.92rem;
+        font-weight: 400;
+        color: var(--dark);
+        font-variant-numeric: tabular-nums;
+    }
+    .today-hero-pill.next-pill { background: var(--dark); border-color: var(--dark); }
+    .today-hero-pill.next-pill .today-prayer-name,
+    .today-hero-pill.next-pill .today-prayer-time { color: var(--white); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="detail-container">
 
@@ -25,6 +64,42 @@
     </div>
 
     <hr class="divider">
+
+    {% if not request.GET.date %}
+        {% now "Y-m-d" as today_str %}
+        {% for pt in prayer_times %}
+            {% if pt.date|date:"Y-m-d" == today_str %}
+            <p class="page-meta" style="margin-bottom: 0.75rem;">TODAY</p>
+            <div class="today-hero">
+                <div class="today-hero-pill" data-prayer-time="{{ pt.fajr|time:'H:i' }}">
+                    <span class="today-prayer-name">Fajr</span>
+                    <span class="today-prayer-time">{{ pt.fajr|time:"H:i" }}</span>
+                </div>
+                <div class="today-hero-pill" data-prayer-time="{{ pt.sunrise|time:'H:i' }}" data-skip="true">
+                    <span class="today-prayer-name">Sunrise</span>
+                    <span class="today-prayer-time">{{ pt.sunrise|time:"H:i" }}</span>
+                </div>
+                <div class="today-hero-pill" data-prayer-time="{{ pt.zuhr|time:'H:i' }}">
+                    <span class="today-prayer-name">Zuhr</span>
+                    <span class="today-prayer-time">{{ pt.zuhr|time:"H:i" }}</span>
+                </div>
+                <div class="today-hero-pill" data-prayer-time="{{ pt.asr|time:'H:i' }}">
+                    <span class="today-prayer-name">Asr</span>
+                    <span class="today-prayer-time">{{ pt.asr|time:"H:i" }}</span>
+                </div>
+                <div class="today-hero-pill" data-prayer-time="{{ pt.maghrib|time:'H:i' }}">
+                    <span class="today-prayer-name">Maghrib</span>
+                    <span class="today-prayer-time">{{ pt.maghrib|time:"H:i" }}</span>
+                </div>
+                <div class="today-hero-pill" data-prayer-time="{{ pt.isha|time:'H:i' }}">
+                    <span class="today-prayer-name">Isha</span>
+                    <span class="today-prayer-time">{{ pt.isha|time:"H:i" }}</span>
+                </div>
+            </div>
+            <hr class="divider" style="margin-top: 0;">
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 
     <div class="page-header" style="margin-bottom: 1.2rem; align-items: center;">
         <h3 style="margin: 0;">Prayer Times</h3>
@@ -54,7 +129,7 @@
             </thead>
             <tbody>
                 {% for pt in prayer_times %}
-                    <tr>
+                    <tr data-date="{{ pt.date|date:'Y-m-d' }}">
                         <td>{{ pt.date }}</td>
                         <td>{{ pt.fajr|time:"H:i" }}</td>
                         <td>{{ pt.sunrise|time:"H:i" }}</td>
@@ -76,8 +151,41 @@
     {% endif %}
 
     <div class="mt-3">
-        <a href="{% url 'city_list' %}" class="btn btn-ghost">&larr; All cities</a>
+        <a href="{% url 'add_city' %}" class="btn btn-ghost">&larr; Cities</a>
     </div>
 
 </div>
+
+<script>
+(function () {
+    const today = new Date().toISOString().split('T')[0];
+    const todayRow = document.querySelector(`tr[data-date="${today}"]`);
+    if (!todayRow) return;
+
+    todayRow.classList.add('today-row');
+
+    // Column indices: 0=Date, 1=Fajr, 2=Sunrise, 3=Zuhr, 4=Asr, 5=Maghrib, 6=Isha
+    const prayerCols = { fajr: 1, zuhr: 3, asr: 4, maghrib: 5, isha: 6 };
+    const now  = new Date();
+    const curr = now.getHours() * 60 + now.getMinutes();
+    const order = ['fajr', 'zuhr', 'asr', 'maghrib', 'isha'];
+
+    let nextKey = 'fajr';
+    for (const key of order) {
+        const cell = todayRow.cells[prayerCols[key]];
+        const [h, m] = cell.textContent.trim().split(':').map(Number);
+        if (h * 60 + m > curr) { nextKey = key; break; }
+    }
+
+    todayRow.cells[prayerCols[nextKey]].classList.add('next-prayer');
+
+    // Highlight the matching pill in the today-hero strip
+    const heroPills = Array.from(document.querySelectorAll('.today-hero-pill:not([data-skip])'));
+    let nextPill = heroPills.find(pill => {
+        const [h, m] = pill.dataset.prayerTime.split(':').map(Number);
+        return h * 60 + m > curr;
+    }) || heroPills[0];
+    if (nextPill) nextPill.classList.add('next-pill');
+}());
+</script>
 {% endblock %}

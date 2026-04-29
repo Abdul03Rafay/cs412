@@ -62,6 +62,11 @@
     }
     .city-tile:hover { border-color: #888; color: #111; }
     .city-tile-active { background: #111 !important; border-color: #111 !important; color: #fff !important; }
+
+    /* Next upcoming prayer row (today only) */
+    .cal-time-row-next { background: #f4f4f4; margin: 0 -18px; padding-left: 18px; padding-right: 18px; }
+    .cal-time-row-next .cal-time-label { color: #1a5c40; }
+    .cal-time-row-next .cal-time-val   { color: #1a5c40; }
 </style>
 {% endblock %}
 
@@ -88,7 +93,7 @@
     </div>
 
     <!-- Horizontal date strip -->
-    <div class="date-strip-wrapper" style="overflow-x:auto;width:100%;padding-bottom:8px;margin-bottom:1.5rem;">
+    <div id="date-strip-wrapper" class="date-strip-wrapper" style="overflow-x:auto;width:100%;padding-bottom:8px;margin-bottom:1.5rem;">
         <div class="date-strip" id="date-strip" style="display:flex;flex-direction:row;flex-wrap:nowrap;width:max-content;gap:6px;padding:4px 2px;"></div>
     </div>
 
@@ -107,6 +112,19 @@
 
     let selectedDate = todayIso;
     let selectedCity = citiesData.length > 0 ? citiesData[0].pk : null;
+
+    /* ---- next prayer helper (used when selectedDate === today) ---- */
+    function getNextPrayer(pt) {
+        const now  = new Date();
+        const curr = now.getHours() * 60 + now.getMinutes();
+        const order = [['Fajr', pt.fajr], ['Zuhr', pt.zuhr], ['Asr', pt.asr],
+                       ['Maghrib', pt.maghrib], ['Isha', pt.isha]];
+        for (const [name, t] of order) {
+            const [h, m] = t.split(':').map(Number);
+            if (h * 60 + m > curr) return name;
+        }
+        return 'Fajr';
+    }
 
     /* ---- helpers ---- */
     function firstWord(str) {
@@ -136,39 +154,52 @@
     }
 
     /* ---- date strip ---- */
+    function makeTile(d) {
+        const active  = d.gregorian === selectedDate;
+        const isToday = d.is_today;
+        const tile = document.createElement('div');
+        tile.className = 'date-tile'
+            + (active  ? ' date-tile-active'  : '')
+            + (isToday && !active ? ' date-tile-today' : '');
+        tile.dataset.date = d.gregorian;
+        tile.style.cssText = 'flex:0 0 62px;width:62px;display:flex;flex-direction:column;align-items:center;';
+        const gd = new Date(d.gregorian + 'T12:00:00');
+        tile.innerHTML =
+            `<span class="dt-day">${gd.getDate()}</span>` +
+            `<span class="dt-month">${gd.toLocaleDateString('en-US', { month: 'short' })}</span>`;
+        tile.addEventListener('click', () => {
+            selectedDate = d.gregorian;
+            renderStrip();
+            renderCard();
+        });
+        return tile;
+    }
+
     function renderStrip() {
+        const wrapper = document.getElementById('date-strip-wrapper');
+        const savedScroll = wrapper ? wrapper.scrollLeft : 0;
         const strip = document.getElementById('date-strip');
         strip.innerHTML = '';
-        datesData.forEach(d => {
-            const active  = d.gregorian === selectedDate;
-            const isToday = d.is_today;
-
-            const tile = document.createElement('div');
-            tile.className = 'date-tile'
-                + (active  ? ' date-tile-active'  : '')
-                + (isToday && !active ? ' date-tile-today' : '');
-            tile.dataset.date = d.gregorian;
-            tile.style.cssText = 'flex:0 0 62px;width:62px;display:flex;flex-direction:column;align-items:center;';
-
-            const gd = new Date(d.gregorian + 'T12:00:00');
-            const dayNum   = gd.getDate();
-            const monthStr = gd.toLocaleDateString('en-US', { month: 'short' });
-
-            tile.innerHTML =
-                `<span class="dt-day">${dayNum}</span>` +
-                `<span class="dt-month">${monthStr}</span>`;
-
-            tile.addEventListener('click', () => {
-                selectedDate = d.gregorian;
-                renderStrip();
-                renderCard();
-            });
-            strip.appendChild(tile);
-        });
-
+        datesData.forEach(d => strip.appendChild(makeTile(d)));
         const activeTile = strip.querySelector('.date-tile-active');
         if (activeTile) {
             setTimeout(() => activeTile.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' }), 0);
+        } else if (wrapper) {
+            wrapper.scrollLeft = savedScroll;
+        }
+    }
+
+    /* ---- extend strip on scroll ---- */
+    function extendStrip(days) {
+        const last  = datesData[datesData.length - 1].gregorian;
+        const strip = document.getElementById('date-strip');
+        const d     = new Date(last + 'T12:00:00');
+        for (let i = 0; i < days; i++) {
+            d.setDate(d.getDate() + 1);
+            const iso   = d.toISOString().slice(0, 10);
+            const entry = { gregorian: iso, hijri_day: '', hijri_month: '', hijri_year: '', holiday_name: '', is_today: false };
+            datesData.push(entry);
+            strip.appendChild(makeTile(entry));
         }
     }
 
@@ -209,8 +240,18 @@
         const { cityName, hijriStr, holiday, gregStr } = cardMeta(city, dInfo);
 
         if (pt) {
-            const rows = [['Fajr', pt.fajr], ['Zuhr', pt.zuhr], ['Asr', pt.asr], ['Maghrib', pt.maghrib], ['Isha', pt.isha]]
-                .map(([n, t]) => `<div class="cal-time-row"><span class="cal-time-label">${n}</span><span class="cal-time-val">${t}</span></div>`)
+            const nextPrayer = selectedDate === todayIso ? getNextPrayer(pt) : null;
+            const prayerList = [
+                ['Fajr', pt.fajr, false], ['Sunrise', pt.sunrise, true],
+                ['Zuhr', pt.zuhr, false], ['Asr', pt.asr, false],
+                ['Maghrib', pt.maghrib, false], ['Isha', pt.isha, false],
+            ];
+            const rows = prayerList
+                .map(([n, t, skip]) => {
+                    const cls = (!skip && n === nextPrayer) ? ' cal-time-row-next' : '';
+                    const labelCls = skip ? ' cal-time-label-dim' : '';
+                    return `<div class="cal-time-row${cls}"><span class="cal-time-label${labelCls}">${n}</span><span class="cal-time-val">${t}</span></div>`;
+                })
                 .join('');
             card.innerHTML = buildCard(cityName, gregStr, hijriStr, holiday,
                 `<div class="cal-card-times">${rows}</div>`);
@@ -247,8 +288,8 @@
             if (selectedCity != cityPk || selectedDate !== date) return;
             if (data.ok) {
                 prayerData[`${cityPk}_${date}`] = {
-                    fajr: data.fajr, zuhr: data.zuhr, asr: data.asr,
-                    maghrib: data.maghrib, isha: data.isha,
+                    fajr: data.fajr, sunrise: data.sunrise, zuhr: data.zuhr,
+                    asr: data.asr, maghrib: data.maghrib, isha: data.isha,
                 };
                 // Patch datesData with Hijri info returned by the API
                 if (data.hijri_day) {
@@ -275,5 +316,16 @@
     renderCityStrip();
     renderStrip();
     renderCard();
+
+    /* ---- infinite scroll: append 30 days when near the right edge ---- */
+    let stripExtending = false;
+    document.getElementById('date-strip-wrapper').addEventListener('scroll', function () {
+        if (stripExtending) return;
+        if (this.scrollLeft + this.clientWidth >= this.scrollWidth - 250) {
+            stripExtending = true;
+            extendStrip(30);
+            stripExtending = false;
+        }
+    });
 </script>
 {% endblock %}

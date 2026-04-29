@@ -13,6 +13,14 @@
         {% csrf_token %}
 
         <div class="form-group">
+            <label class="form-label" for="{{ form.city.id_for_label }}">Home City</label>
+            {{ form.city }}
+            {% if form.city.errors %}
+                <div class="form-error">{{ form.city.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
             <label class="form-label">Madhab</label>
             <div class="toggle-group">
                 <input type="radio" name="madhab" id="madhab_standard" value="Standard"
@@ -47,6 +55,17 @@
             {{ form.display_language }}
             {% if form.display_language.errors %}
                 <div class="form-error">{{ form.display_language.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem;">
+            {{ form.notification_preference }}
+            <label class="form-label" for="{{ form.notification_preference.id_for_label }}"
+                   style="margin: 0; text-transform: none; font-size: 0.88rem;">
+                Enable prayer time reminders
+            </label>
+            {% if form.notification_preference.errors %}
+                <div class="form-error">{{ form.notification_preference.errors }}</div>
             {% endif %}
         </div>
 

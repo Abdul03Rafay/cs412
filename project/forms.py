@@ -10,7 +10,7 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         '''Associate this form with the Profile model and its fields.'''
         model = Profile
-        fields = ['madhab', 'calculation_method', 'display_language']
+        fields = ['city', 'madhab', 'calculation_method', 'display_language', 'notification_preference']
         widgets = {
             'display_language': forms.TextInput(attrs={'class': 'form-input'}),
         }

@@ -14,15 +14,17 @@
             border: 1px solid var(--border, #e4e4e4);
         }
 
-        /* Prayer time popup card */
-        .leaflet-popup-content-wrapper {
+        /* Floating prayer card — positioned to viewport, never clipped by map */
+        #city-popup-overlay {
+            display: none;
+            position: fixed;
+            z-index: 9000;
+            width: 220px;
             border-radius: 6px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-            padding: 0;
             overflow: hidden;
+            pointer-events: auto;
         }
-        .leaflet-popup-content { margin: 0; width: 220px !important; }
-        .leaflet-popup-tip-container { display: none; }
 
         .prayer-card { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
 
@@ -39,7 +41,7 @@
         }
         .prayer-card-header span { font-size: 0.72rem; color: #aaa; letter-spacing: 0.04em; text-transform: uppercase; }
 
-        .prayer-card-body { padding: 10px 14px 12px; }
+        .prayer-card-body { padding: 10px 14px 12px; background: #fff; }
 
         .prayer-row {
             display: flex;
@@ -56,11 +58,36 @@
             padding: 8px 14px 10px;
             border-top: 1px solid #f4f4f4;
             text-align: center;
+            background: #fff;
         }
         .prayer-card-footer a { font-size: 0.8rem; color: #888; text-decoration: none; }
         .prayer-card-footer a:hover { color: #333; }
 
-        .no-times { padding: 10px 14px 12px; font-size: 0.82rem; color: #888; }
+        .no-times { padding: 10px 14px 12px; font-size: 0.82rem; color: #888; background: #fff; }
+
+        /* Next upcoming prayer row */
+        .prayer-row-next { background: #f4f4f4; margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
+        .prayer-row-next .prayer-label { color: #1a5c40; }
+        .prayer-row-next .prayer-time  { color: #1a5c40; }
+
+        /* Next-prayer countdown bar */
+        #next-prayer-bar {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 9px 16px;
+            margin-bottom: 1rem;
+            background: #fafafa;
+            border: 1px solid #e4e4e4;
+            border-radius: 6px;
+            font-size: 0.84rem;
+        }
+        .npb-label    { color: #aaa; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.7rem; }
+        .npb-prayer   { color: #111; }
+        .npb-sep      { color: #ddd; }
+        .npb-time     { color: #555; }
+        .npb-countdown{ color: #1a5c40; }
+        .npb-city     { margin-left: auto; color: #bbb; font-size: 0.78rem; }
     </style>
 {% endblock %}
 
@@ -76,7 +103,17 @@
     </div>
 
     {% if cities_json != '[]' %}
+        <div id="next-prayer-bar" aria-live="polite">
+            <span class="npb-label">Next</span>
+            <span class="npb-prayer"></span>
+            <span class="npb-sep">·</span>
+            <span class="npb-time"></span>
+            <span class="npb-sep">·</span>
+            <span class="npb-countdown"></span>
+            <span class="npb-city"></span>
+        </div>
         <div id="map"></div>
+        <div id="city-popup-overlay"></div>
     {% else %}
         <div class="empty-state">
             <p>No cities saved yet.</p>
@@ -89,6 +126,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const citiesData = {{ cities_json|safe }};
+    const cityDetailUrlTpl = "{% url 'city_detail' pk=0 %}";
 
     if (citiesData.length > 0) {
         const map = L.map('map', { zoomControl: true });
@@ -99,23 +137,56 @@
             maxZoom: 19,
         }).addTo(map);
 
+        // Minimal black dot marker consistent with the app's design
+        const cityIcon = L.divIcon({
+            className: '',
+            html: '<div style="width:10px;height:10px;border-radius:50%;background:#111;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.28);"></div>',
+            iconSize: [10, 10],
+            iconAnchor: [5, 5],
+        });
+
+        // Returns the key ('fajr'|'zuhr'|'asr'|'maghrib'|'isha') of the next upcoming prayer
+        function getNextPrayer(pt) {
+            const now  = new Date();
+            const curr = now.getHours() * 60 + now.getMinutes();
+            const order = [['fajr', pt.fajr], ['zuhr', pt.zuhr], ['asr', pt.asr],
+                           ['maghrib', pt.maghrib], ['isha', pt.isha]];
+            for (const [key, t] of order) {
+                const [h, m] = t.split(':').map(Number);
+                if (h * 60 + m > curr) return key;
+            }
+            return 'fajr'; // post-Isha: Fajr is next
+        }
+
+        // Single shared overlay — positioned to the viewport so it is never
+        // clipped by the map container's overflow boundary
+        const overlay = document.getElementById('city-popup-overlay');
+        const mapEl   = document.getElementById('map');
+        let   closeTimer;
+
+        overlay.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+        overlay.addEventListener('mouseleave', () => {
+            closeTimer = setTimeout(() => { overlay.style.display = 'none'; }, 350);
+        });
+
         const bounds = [];
 
         citiesData.forEach(city => {
-            const marker = L.marker([city.lat, city.lon]).addTo(map);
+            const marker = L.marker([city.lat, city.lon], { icon: cityIcon }).addTo(map);
 
             let timesHtml = '';
             if (city.prayer_times) {
+                const nextKey = getNextPrayer(city.prayer_times);
                 const prayers = [
-                    ['Fajr',    city.prayer_times.fajr],
-                    ['Zuhr',    city.prayer_times.zuhr],
-                    ['Asr',     city.prayer_times.asr],
-                    ['Maghrib', city.prayer_times.maghrib],
-                    ['Isha',    city.prayer_times.isha],
+                    ['Fajr',    city.prayer_times.fajr,    'fajr'],
+                    ['Zuhr',    city.prayer_times.zuhr,    'zuhr'],
+                    ['Asr',     city.prayer_times.asr,     'asr'],
+                    ['Maghrib', city.prayer_times.maghrib, 'maghrib'],
+                    ['Isha',    city.prayer_times.isha,    'isha'],
                 ];
                 timesHtml = `<div class="prayer-card-body">` +
-                    prayers.map(([label, time]) =>
-                        `<div class="prayer-row">
+                    prayers.map(([label, time, key]) =>
+                        `<div class="prayer-row${key === nextKey ? ' prayer-row-next' : ''}">
                             <span class="prayer-label">${label}</span>
                             <span class="prayer-time">${time}</span>
                         </div>`
@@ -125,7 +196,7 @@
                 timesHtml = `<div class="no-times">No prayer times fetched for today.</div>`;
             }
 
-            const popupHtml = `
+            const cardHtml = `
                 <div class="prayer-card">
                     <div class="prayer-card-header">
                         <h4>${city.name}</h4>
@@ -133,30 +204,39 @@
                     </div>
                     ${timesHtml}
                     <div class="prayer-card-footer">
-                        <a href="/project/city/${city.pk}/">View full schedule &rarr;</a>
+                        <a href="${cityDetailUrlTpl.replace('/0/', '/' + city.pk + '/')}">View full schedule &rarr;</a>
                     </div>
                 </div>`;
 
-            marker.bindPopup(popupHtml, { maxWidth: 240, closeButton: false, autoPan: false });
+            marker.on('click', function () {
+                window.location.href = cityDetailUrlTpl.replace('/0/', '/' + city.pk + '/');
+            });
 
-            let closeTimer;
             marker.on('mouseover', function () {
                 clearTimeout(closeTimer);
-                this.openPopup();
-            });
-            marker.on('mouseout', function () {
-                const self = this;
-                closeTimer = setTimeout(() => self.closePopup(), 350);
+                overlay.innerHTML = cardHtml;
+                overlay.style.display = 'block';
+
+                const pt   = map.latLngToContainerPoint(this.getLatLng());
+                const rect = mapEl.getBoundingClientRect();
+                const cardW = 220;
+
+                // Prefer right of the marker; flip left if it would overflow the viewport
+                let left = rect.left + pt.x + 18;
+                let top  = rect.top  + pt.y - 64;
+
+                if (left + cardW > window.innerWidth - 8) {
+                    left = rect.left + pt.x - cardW - 18;
+                }
+                // Clamp vertically so the card never goes above the map or below the fold
+                top = Math.max(rect.top + 8, Math.min(top, window.innerHeight - 300));
+
+                overlay.style.left = left + 'px';
+                overlay.style.top  = top  + 'px';
             });
 
-            marker.getPopup()?.on('add', function () {
-                const el = this.getElement();
-                if (el) {
-                    el.addEventListener('mouseenter', () => clearTimeout(closeTimer));
-                    el.addEventListener('mouseleave', () => {
-                        closeTimer = setTimeout(() => marker.closePopup(), 350);
-                    });
-                }
+            marker.on('mouseout', function () {
+                closeTimer = setTimeout(() => { overlay.style.display = 'none'; }, 350);
             });
 
             bounds.push([city.lat, city.lon]);
@@ -168,5 +248,43 @@
             map.fitBounds(bounds, { padding: [60, 60] });
         }
     }
+
+    /* ---- next-prayer countdown bar ---- */
+    function updateCountdownBar() {
+        const bar = document.getElementById('next-prayer-bar');
+        if (!bar) return;
+
+        const city = citiesData.find(c => c.prayer_times);
+        if (!city) return;
+
+        const pt    = city.prayer_times;
+        const order = [['Fajr', pt.fajr], ['Zuhr', pt.zuhr], ['Asr', pt.asr],
+                       ['Maghrib', pt.maghrib], ['Isha', pt.isha]];
+
+        const now  = new Date();
+        const curr = now.getHours() * 60 + now.getMinutes();
+
+        let nextName = order[0][0], nextTime = order[0][1];
+        for (const [name, t] of order) {
+            const [h, m] = t.split(':').map(Number);
+            if (h * 60 + m > curr) { nextName = name; nextTime = t; break; }
+        }
+
+        const [nh, nm] = nextTime.split(':').map(Number);
+        let diff = (nh * 60 + nm) - curr;
+        if (diff <= 0) diff += 24 * 60;
+        const countdown = diff >= 60
+            ? `${Math.floor(diff / 60)} h ${diff % 60} m`
+            : `${diff} m`;
+
+        bar.querySelector('.npb-prayer').textContent   = nextName;
+        bar.querySelector('.npb-time').textContent     = nextTime;
+        bar.querySelector('.npb-countdown').textContent = `in ${countdown}`;
+        bar.querySelector('.npb-city').textContent     = city.name;
+        bar.style.display = 'flex';
+    }
+
+    updateCountdownBar();
+    setInterval(updateCountdownBar, 60000);
 </script>
 {% endblock %}

@@ -154,7 +154,7 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
         return Profile.objects.get_or_create(user=self.request.user)[0]
 
     def get_context_data(self, **kwargs):
-        '''Include saved cities in the profile context.'''
+        '''Include saved cities and today's home-city prayer times in the profile context.'''
         context = super().get_context_data(**kwargs)
         profile = self.get_object()
         context['saved_cities'] = (
@@ -162,6 +162,10 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
             .select_related('city')
             .order_by('-date_added')
         )
+        if profile.city:
+            context['home_prayer_times'] = PrayerTime.objects.filter(
+                city=profile.city, date=datetime.date.today()
+            ).first()
         return context
 
 
@@ -231,6 +235,7 @@ class HijriCalendarListView(LoginRequiredMixin, TemplateView):
             key = f"{pt.city_id}_{pt.date.isoformat()}"
             prayer_times[key] = {
                 'fajr':    pt.fajr.strftime('%H:%M'),
+                'sunrise': pt.sunrise.strftime('%H:%M'),
                 'zuhr':    pt.zuhr.strftime('%H:%M'),
                 'asr':     pt.asr.strftime('%H:%M'),
                 'maghrib': pt.maghrib.strftime('%H:%M'),
@@ -289,9 +294,11 @@ def unsave_city(request, pk):
 @login_required
 def add_city(request):
     '''Merged Cities page: shows the user's saved cities and lets them add a new one.
-    On POST, calls the Aladhan timingsByCity API with the city name and country to retrieve
-    coordinates, timezone, and today's prayer times. Creates City, SavedCity, and PrayerTime
-    records as needed, then redirects to the map.'''
+    On POST, geocodes the city via the Nominatim (OpenStreetMap) API for accurate
+    coordinates, then calls the Aladhan timings API using those coordinates to retrieve
+    timezone and today's prayer times. Creates City, SavedCity, and PrayerTime records
+    as needed, then redirects to the map. Uses update_or_create so any city previously
+    stored with inaccurate coordinates is corrected on re-add.'''
     error = None
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
@@ -310,51 +317,66 @@ def add_city(request):
             method = ALADHAN_METHOD.get(profile.calculation_method, 2)
             school = ALADHAN_SCHOOL.get(profile.madhab, 0)
 
-            params = {'city': city_name, 'method': method, 'school': school}
-            if country:
-                params['country'] = country
-            query_string = urllib.parse.urlencode(params)
-            url = f"https://api.aladhan.com/v1/timingsByCity/{date_str}?{query_string}"
-
             try:
-                with urllib.request.urlopen(url, timeout=10) as response:
-                    data = json.loads(response.read().decode())
+                # Step 1: Geocode with Nominatim for accurate coordinates
+                geo_query = f"{city_name}, {country}" if country else city_name
+                geo_params = urllib.parse.urlencode({'q': geo_query, 'format': 'json', 'limit': 1})
+                geo_req = urllib.request.Request(
+                    f"https://nominatim.openstreetmap.org/search?{geo_params}",
+                    headers={'User-Agent': 'Muezzin-CS412/1.0 rafaya@bu.edu'},
+                )
+                with urllib.request.urlopen(geo_req, timeout=10) as response:
+                    geo_data = json.loads(response.read().decode())
 
-                if data.get('code') == 200:
-                    timings = data['data']['timings']
-                    meta = data['data']['meta']
-                    def clean(t): return t.split(' ')[0]
+                if not geo_data:
+                    error = f"City '{city_query}' was not found. Try a different spelling or city name."
+                else:
+                    lat = float(geo_data[0]['lat'])
+                    lon = float(geo_data[0]['lon'])
 
-                    # Use the display name from the input; look up by name to avoid duplicates
-                    city_obj, _ = City.objects.get_or_create(
-                        name=city_name,
-                        defaults={
-                            'latitude': meta['latitude'],
-                            'longitude': meta['longitude'],
-                            'timezone': meta['timezone'],
-                        }
+                    # Step 2: Fetch prayer times from Aladhan using the accurate coordinates
+                    aladhan_url = (
+                        f"https://api.aladhan.com/v1/timings/{date_str}"
+                        f"?latitude={lat}&longitude={lon}"
+                        f"&method={method}&school={school}"
                     )
+                    with urllib.request.urlopen(aladhan_url, timeout=10) as response:
+                        data = json.loads(response.read().decode())
 
-                    SavedCity.objects.get_or_create(profile=profile, city=city_obj)
+                    if data.get('code') == 200:
+                        timings = data['data']['timings']
+                        meta    = data['data']['meta']
+                        def clean(t): return t.split(' ')[0]
 
-                    if not PrayerTime.objects.filter(city=city_obj, date=today).exists():
-                        PrayerTime.objects.create(
-                            city=city_obj,
-                            date=today,
-                            fajr=clean(timings['Fajr']),
-                            sunrise=clean(timings['Sunrise']),
-                            zuhr=clean(timings['Dhuhr']),
-                            asr=clean(timings['Asr']),
-                            maghrib=clean(timings['Maghrib']),
-                            isha=clean(timings['Isha']),
+                        city_obj, _ = City.objects.update_or_create(
+                            name=city_name,
+                            defaults={
+                                'latitude':  lat,
+                                'longitude': lon,
+                                'timezone':  meta['timezone'],
+                            }
                         )
 
-                    return redirect('map')
-                else:
-                    error = f"City '{city_query}' was not found. Try a different spelling or city name."
+                        SavedCity.objects.get_or_create(profile=profile, city=city_obj)
+
+                        if not PrayerTime.objects.filter(city=city_obj, date=today).exists():
+                            PrayerTime.objects.create(
+                                city=city_obj,
+                                date=today,
+                                fajr=clean(timings['Fajr']),
+                                sunrise=clean(timings['Sunrise']),
+                                zuhr=clean(timings['Dhuhr']),
+                                asr=clean(timings['Asr']),
+                                maghrib=clean(timings['Maghrib']),
+                                isha=clean(timings['Isha']),
+                            )
+
+                        return redirect('map')
+                    else:
+                        error = 'Could not fetch prayer times. Please try again.'
 
             except Exception:
-                error = 'Could not connect to the prayer times service. Please try again.'
+                error = 'Could not connect to location services. Please try again.'
 
     saved_cities = SavedCity.objects.filter(profile=profile).select_related('city').order_by('-date_added')
     return render(request, 'project/add_city.html', {
@@ -387,6 +409,7 @@ def fetch_prayer_times_api(request):
     if pt:
         times = {
             'fajr':    pt.fajr.strftime('%H:%M'),
+            'sunrise': pt.sunrise.strftime('%H:%M'),
             'zuhr':    pt.zuhr.strftime('%H:%M'),
             'asr':     pt.asr.strftime('%H:%M'),
             'maghrib': pt.maghrib.strftime('%H:%M'),
@@ -410,6 +433,7 @@ def fetch_prayer_times_api(request):
 
             times = {
                 'fajr':    clean(timings['Fajr']),
+                'sunrise': clean(timings['Sunrise']),
                 'zuhr':    clean(timings['Dhuhr']),
                 'asr':     clean(timings['Asr']),
                 'maghrib': clean(timings['Maghrib']),
@@ -430,12 +454,7 @@ def fetch_prayer_times_api(request):
             except Exception:
                 pass
 
-            PrayerTime.objects.create(
-                city=city,
-                date=target_date,
-                sunrise=clean(timings['Sunrise']),
-                **times,
-            )
+            PrayerTime.objects.create(city=city, date=target_date, **times)
         except Exception:
             return JsonResponse({'ok': False, 'error': 'Could not reach the prayer times service.'})
 

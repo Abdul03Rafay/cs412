@@ -3,10 +3,14 @@
 
 {% block title %}Login — Muezzin{% endblock %}
 
+{% block nav %}{% endblock %}
+
+{% block extra_head %}
+<style>body { padding-top: 0; }</style>
+{% endblock %}
+
 {% block content %}
 <div class="form-container">
-
-    <h2>Login</h2>
 
     <form method="POST" class="form-card">
         {% csrf_token %}

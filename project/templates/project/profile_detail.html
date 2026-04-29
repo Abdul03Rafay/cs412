@@ -17,6 +17,10 @@
             <span class="settings-value">{{ profile.user.username }}</span>
         </div>
         <div class="settings-row">
+            <span class="settings-label">Home City</span>
+            <span class="settings-value">{{ profile.city.name|default:"—" }}</span>
+        </div>
+        <div class="settings-row">
             <span class="settings-label">Madhab</span>
             <span class="settings-value">{{ profile.get_madhab_display }}</span>
         </div>
@@ -27,6 +31,10 @@
         <div class="settings-row">
             <span class="settings-label">Display Language</span>
             <span class="settings-value">{{ profile.display_language }}</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Notifications</span>
+            <span class="settings-value">{{ profile.notification_preference|yesno:"Enabled,Disabled" }}</span>
         </div>
     </div>
 
