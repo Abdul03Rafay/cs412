@@ -1,7 +1,24 @@
 <!-- project/templates/project/add_city.html -->
+<!-- Author: Abdul Rafay (rafaya@bu.edu), 4/21/2026 -->
+<!-- Description: Cities page — search/add cities with an interactive map showing saved cities and click-to-discover. -->
 {% extends 'project/base.html' %}
 
 {% block title %}Cities — Muezzin{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map {
+            width: 100%;
+            height: 380px;
+            border-radius: 6px;
+            border: 1px solid var(--border, #e4e4e4);
+            cursor: crosshair;
+            margin-top: 1rem;
+            margin-bottom: 0.4rem;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
 <div class="list-container">
@@ -32,9 +49,10 @@
         </datalist>
         <button type="submit" class="btn btn-primary">Add</button>
     </form>
-    <p class="form-hint" style="margin-top: 0.4rem;">
-        Not in the list? Type any city in "City, Country" format.
-    </p>
+
+    <div id="map"></div>
+    <p class="form-hint" style="margin-bottom: 1.5rem;">Click anywhere on the map to fill the city field above.</p>
+    <div id="city-popup-overlay"></div>
 
     <hr class="divider">
 
@@ -56,9 +74,159 @@
         </ul>
     {% else %}
         <div class="empty-state">
-            <p>No cities saved yet. Search above to add one.</p>
+            <p>No cities saved yet. Search above or click the map to add one.</p>
         </div>
     {% endif %}
 
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const citiesData       = {{ cities_json|safe }};
+    const homeCityPk       = {{ home_city_pk|default:"null" }};
+    const cityDetailUrlTpl = "{% url 'city_detail' pk=0 %}";
+
+    const map = L.map('map', { zoomControl: true });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19,
+    }).addTo(map);
+
+    const cityIcon = L.divIcon({
+        className: '',
+        html: '<div style="width:10px;height:10px;border-radius:50%;background:#111;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.28);"></div>',
+        iconSize: [10, 10], iconAnchor: [5, 5],
+    });
+
+    const pendingIcon = L.divIcon({
+        className: '',
+        html: '<div style="width:10px;height:10px;border-radius:50%;background:#1a5c40;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.28);"></div>',
+        iconSize: [10, 10], iconAnchor: [5, 5],
+    });
+
+    function getNextPrayer(pt) {
+        const now  = new Date();
+        const curr = now.getHours() * 60 + now.getMinutes();
+        const order = [['fajr', pt.fajr], ['zuhr', pt.zuhr], ['asr', pt.asr],
+                       ['maghrib', pt.maghrib], ['isha', pt.isha]];
+        for (const [key, t] of order) {
+            const [h, m] = t.split(':').map(Number);
+            if (h * 60 + m > curr) return key;
+        }
+        return 'fajr';
+    }
+
+    const overlay = document.getElementById('city-popup-overlay');
+    const mapEl   = document.getElementById('map');
+    let   closeTimer;
+
+    overlay.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+    overlay.addEventListener('mouseleave', () => {
+        closeTimer = setTimeout(() => { overlay.style.display = 'none'; }, 350);
+    });
+
+    const bounds = [];
+    citiesData.forEach(city => {
+        const marker = L.marker([city.lat, city.lon], { icon: cityIcon }).addTo(map);
+
+        let timesHtml = '';
+        if (city.prayer_times) {
+            const nextKey = getNextPrayer(city.prayer_times);
+            const prayers = [
+                ['Fajr',    city.prayer_times.fajr,    'fajr'],
+                ['Zuhr',    city.prayer_times.zuhr,    'zuhr'],
+                ['Asr',     city.prayer_times.asr,     'asr'],
+                ['Maghrib', city.prayer_times.maghrib, 'maghrib'],
+                ['Isha',    city.prayer_times.isha,    'isha'],
+            ];
+            timesHtml = `<div class="prayer-card-body">` +
+                prayers.map(([label, time, key]) =>
+                    `<div class="prayer-row${key === nextKey ? ' prayer-row-next' : ''}">
+                        <span class="prayer-label">${label}</span>
+                        <span class="prayer-time">${time}</span>
+                    </div>`
+                ).join('') +
+            `</div>`;
+        } else {
+            timesHtml = `<div class="no-times">No prayer times for today.</div>`;
+        }
+
+        const cardHtml = `
+            <div class="prayer-card">
+                <div class="prayer-card-header">
+                    <h4>${city.name}</h4>
+                    <span>Today&rsquo;s Prayer Times</span>
+                </div>
+                ${timesHtml}
+                <div class="prayer-card-footer">
+                    <a href="${cityDetailUrlTpl.replace('/0/', '/' + city.pk + '/')}">View full schedule &rarr;</a>
+                </div>
+            </div>`;
+
+        marker.on('click', function () {
+            window.location.href = cityDetailUrlTpl.replace('/0/', '/' + city.pk + '/');
+        });
+
+        marker.on('mouseover', function () {
+            clearTimeout(closeTimer);
+            overlay.innerHTML = cardHtml;
+            overlay.style.display = 'block';
+
+            const pt    = map.latLngToContainerPoint(this.getLatLng());
+            const rect  = mapEl.getBoundingClientRect();
+            const cardW = 220;
+            let left = rect.left + pt.x + 18;
+            let top  = rect.top  + pt.y - 64;
+            if (left + cardW > window.innerWidth - 8) left = rect.left + pt.x - cardW - 18;
+            top = Math.max(rect.top + 8, Math.min(top, window.innerHeight - 300));
+            overlay.style.left = left + 'px';
+            overlay.style.top  = top  + 'px';
+        });
+
+        marker.on('mouseout', function () {
+            closeTimer = setTimeout(() => { overlay.style.display = 'none'; }, 350);
+        });
+
+        bounds.push([city.lat, city.lon]);
+    });
+
+    if (bounds.length === 0) {
+        map.setView([20, 0], 2);
+    } else if (bounds.length === 1) {
+        map.setView(bounds[0], 10);
+    } else {
+        map.fitBounds(bounds, { padding: [60, 60] });
+    }
+
+    /* ---- Click-to-add: reverse geocode and fill the form ---- */
+    let clickMarker = null;
+    map.on('click', function(e) {
+        if (clickMarker) map.removeLayer(clickMarker);
+        clickMarker = L.marker([e.latlng.lat, e.latlng.lng], { icon: pendingIcon }).addTo(map);
+        overlay.style.display = 'none';
+
+        const input = document.getElementById('city_query');
+        input.value = 'Looking up location…';
+        input.disabled = true;
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${e.latlng.lat}&lon=${e.latlng.lng}&format=json&accept-language=en`)
+            .then(r => r.json())
+            .then(data => {
+                const addr    = data.address || {};
+                const city    = addr.city || addr.town || addr.village || addr.hamlet || addr.county || addr.state_district || addr.state || '';
+                const country = addr.country || '';
+                input.value   = country ? `${city}, ${country}` : city;
+                input.disabled = false;
+                input.focus();
+                input.select();
+            })
+            .catch(() => {
+                input.value    = '';
+                input.disabled = false;
+                input.placeholder = 'Location lookup failed — type a city name above';
+            });
+    });
+</script>
 {% endblock %}

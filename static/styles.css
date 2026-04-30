@@ -670,6 +670,47 @@ footer p {
 /* --- Images --- */
 img { max-width: 100%; height: auto; border-radius: var(--radius-s); box-shadow: var(--shadow); }
 
+/* --- Prayer card popup (Cities map) --- */
+#city-popup-overlay {
+    display: none;
+    position: fixed;
+    z-index: 9000;
+    width: 220px;
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+.prayer-card { font-family: var(--font); }
+
+.prayer-card-header { background: #111; color: #fff; padding: 10px 14px 9px; }
+.prayer-card-header h4 { margin: 0 0 2px; font-size: 0.95rem; font-weight: 400; letter-spacing: 0.03em; }
+.prayer-card-header span { font-size: 0.72rem; color: #aaa; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.prayer-card-body { padding: 10px 14px 12px; background: #fff; }
+
+.prayer-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #f4f4f4;
+}
+.prayer-row:last-child { border-bottom: none; }
+.prayer-label { color: #888; }
+.prayer-time  { font-weight: 500; color: #111; }
+
+.prayer-card-footer { padding: 8px 14px 10px; border-top: 1px solid #f4f4f4; text-align: center; background: #fff; }
+.prayer-card-footer a { font-size: 0.8rem; color: #888; text-decoration: none; }
+.prayer-card-footer a:hover { color: #333; }
+
+.no-times { padding: 10px 14px 12px; font-size: 0.82rem; color: #888; background: #fff; }
+
+.prayer-row-next { background: #f4f4f4; margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
+.prayer-row-next .prayer-label { color: #1a5c40; }
+.prayer-row-next .prayer-time  { color: #1a5c40; }
+
 /* --- Legacy support for other apps --- */
 .quote-container {
     background: var(--white);

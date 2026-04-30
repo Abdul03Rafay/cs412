@@ -1,4 +1,6 @@
 <!-- project/templates/project/base.html -->
+<!-- Author: Abdul Rafay (rafaya@bu.edu), 4/20/2026 -->
+<!-- Description: Base template providing nav, site header, and layout for all Muezzin pages. -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -14,8 +16,7 @@
     <nav>
         <ul>
             {% if user.is_authenticated %}
-                <li><a href="{% url 'calendar_list' %}"{% if request.resolver_match.url_name == 'calendar_list' %} class="nav-active"{% endif %}>Calendar</a></li>
-                <li><a href="{% url 'map' %}"{% if request.resolver_match.url_name == 'map' %} class="nav-active"{% endif %}>Map</a></li>
+                <li><a href="{% url 'calendar_list' %}"{% if request.resolver_match.url_name == 'calendar_list' %} class="nav-active"{% endif %}>Prayer Times</a></li>
                 <li><a href="{% url 'add_city' %}"{% if request.resolver_match.url_name == 'add_city' or request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'city_detail' %} class="nav-active"{% endif %}>Cities</a></li>
                 <li><a href="{% url 'profile_detail' %}"{% if request.resolver_match.url_name == 'profile_detail' or request.resolver_match.url_name == 'profile_update' %} class="nav-active"{% endif %}>Profile</a></li>
                 <li>

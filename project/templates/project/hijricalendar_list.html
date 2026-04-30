@@ -1,9 +1,9 @@
 <!-- project/templates/project/hijricalendar_list.html -->
+<!-- Author: Abdul Rafay (rafaya@bu.edu), 4/27/2026 -->
+<!-- Description: Main landing page — interactive date strip with prayer times, Hijri dates, and sun-arc visualization. -->
 {% extends 'project/base.html' %}
 
-{% block title %}Calendar — Muezzin{% endblock %}
-
-{% block site_header %}{% endblock %}
+{% block title %}Prayer Times — Muezzin{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -106,8 +106,8 @@
 
     <div class="page-header">
         <div>
-            <h2>Hijri Calendar</h2>
-            <p class="page-meta">Prayer times by Hijri date — scroll to navigate, select a city below</p>
+            <h2>Prayer Times</h2>
+            <p class="page-meta">Daily prayer times with Hijri date — scroll to explore, select a city below</p>
         </div>
     </div>
 
@@ -270,12 +270,104 @@
         }
     }
 
+    /* ---- sun-arc visualization ---- */
+    function buildArc(pt, isToday, nextPrayer) {
+        const toMins = str => { const [h, m] = str.split(':').map(Number); return h * 60 + m; };
+
+        const fajrM    = toMins(pt.fajr);
+        const zuhrM    = toMins(pt.zuhr);
+        const asrM     = toMins(pt.asr);
+        const maghribM = toMins(pt.maghrib);
+        const ishaM    = toMins(pt.isha);
+        const sunriseM = pt.sunrise ? toMins(pt.sunrise) : null;
+
+        const t0 = fajrM, t1 = ishaM, tRange = t1 - t0;
+        if (tRange <= 0) return '';
+
+        // ViewBox 500×110 — curve spans x:30..470, baseline y=70, peak y=10
+        const PAD = 30, USABLE = 440, BASELINE = 70, PEAK = 10, ARC_H = 60;
+        const sigma = tRange * 0.32;
+        const tx = t => PAD + ((t - t0) / tRange) * USABLE;
+        const ty = t => BASELINE - Math.exp(-0.5 * ((t - zuhrM) / sigma) ** 2) * ARC_H;
+
+        // Smooth curve (80 segments)
+        let d = '';
+        for (let i = 0; i <= 80; i++) {
+            const t = t0 + (i / 80) * tRange;
+            d += (i === 0 ? 'M' : ' L') + tx(t).toFixed(1) + ',' + ty(t).toFixed(1);
+        }
+
+        const now   = new Date();
+        const currM = now.getHours() * 60 + now.getMinutes();
+
+        const dotCol = (name, t) => {
+            if (!isToday) return '#c8c8c8';
+            if (name === nextPrayer) return '#1a5c40';
+            return t < currM ? '#e0e0e0' : '#aaa';
+        };
+        const lblCol = (name, t) => {
+            if (!isToday) return '#bbb';
+            if (name === nextPrayer) return '#1a5c40';
+            return t < currM ? '#d0d0d0' : '#999';
+        };
+
+        const prayers = [
+            ['Fajr', fajrM], ['Zuhr', zuhrM], ['Asr', asrM],
+            ['Maghrib', maghribM], ['Isha', ishaM],
+        ];
+        let dotsHtml = '';
+        for (const [name, t] of prayers) {
+            const x  = tx(t).toFixed(1), y = ty(t).toFixed(1);
+            const r  = (isToday && name === nextPrayer) ? 5 : 3.5;
+            const dc = dotCol(name, t), lc = lblCol(name, t);
+            const anchor = name === 'Fajr' ? 'start' : name === 'Isha' ? 'end' : 'middle';
+            const lx = name === 'Fajr' ? PAD - 2 : name === 'Isha' ? PAD + USABLE + 2 : x;
+            dotsHtml +=
+                `<line x1="${x}" y1="${y}" x2="${x}" y2="${BASELINE}" stroke="${dc}" stroke-width="1" stroke-dasharray="3,2.5"/>` +
+                `<circle cx="${x}" cy="${y}" r="${r}" fill="${dc}"/>` +
+                `<text x="${lx}" y="86" text-anchor="${anchor}" font-size="10" fill="${lc}"` +
+                ` font-family="Helvetica Neue,Helvetica,Arial,sans-serif">${name}</text>`;
+        }
+
+        // Sunrise: small unlabelled reference dot
+        if (sunriseM) {
+            const sx = tx(sunriseM).toFixed(1), sy = ty(sunriseM).toFixed(1);
+            dotsHtml += `<circle cx="${sx}" cy="${sy}" r="2.5" fill="#e0e0e0"/>`;
+        }
+
+        // Current-time marker (today, within range)
+        let nowHtml = '';
+        if (isToday && currM >= t0 && currM <= t1) {
+            const nx = tx(currM).toFixed(1), ny = ty(currM).toFixed(1);
+            nowHtml =
+                `<line x1="${nx}" y1="${PEAK}" x2="${nx}" y2="${BASELINE}" stroke="#111" stroke-width="1" opacity="0.15"/>` +
+                `<circle cx="${nx}" cy="${ny}" r="4.5" fill="#111" opacity="0.35"/>`;
+        }
+
+        return `<svg viewBox="0 0 500 110" width="100%"` +
+            ` style="display:block;margin:0.5rem 0 1.25rem;overflow:visible">` +
+            `<path d="${d}" fill="none" stroke="#e8e8e8" stroke-width="1.5"/>` +
+            nowHtml + dotsHtml +
+            `</svg>`;
+    }
+
     /* ---- prayer section ---- */
-    function currentTimeStr() {
-        const now = new Date();
-        const hm  = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-        const s   = String(now.getSeconds()).padStart(2, '0');
-        return `${hm}<span class="cal-clock-sec">:${s}</span>`;
+    function currentTimeStr(tz) {
+        const now  = new Date();
+        try {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false, timeZone: tz || undefined,
+            }).formatToParts(now);
+            const get = type => parts.find(p => p.type === type)?.value ?? '00';
+            return `${get('hour')}:${get('minute')}<span class="cal-clock-sec">:${get('second')}</span>`;
+        } catch (_) {
+            // Fallback to local time if timezone string is invalid
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            return `${h}:${m}<span class="cal-clock-sec">:${s}</span>`;
+        }
     }
 
     function renderCard() {
@@ -305,6 +397,7 @@
             }
 
             // Hero: live clock + next prayer — only for today
+            const cityTz   = citiesData.find(c => c.pk == selectedCity)?.tz || '';
             let heroHtml = '';
             if (nextPrayer) {
                 const timeMap  = { Fajr: pt.fajr, Zuhr: pt.zuhr, Asr: pt.asr, Maghrib: pt.maghrib, Isha: pt.isha };
@@ -317,7 +410,7 @@
                     ? `${Math.floor(diff / 60)} h ${diff % 60} m`
                     : `${diff} m`;
                 heroHtml = `<div class="cal-next-hero">
-                    <span class="cal-live-clock" id="cal-live-clock">${currentTimeStr()}</span>
+                    <span class="cal-live-clock" id="cal-live-clock" data-tz="${cityTz}">${currentTimeStr(cityTz)}</span>
                     <div class="cal-next-info">
                         <span class="cal-next-label">Next prayer</span>
                         <span class="cal-next-name">${nextPrayer}</span>
@@ -342,7 +435,8 @@
                 })
                 .join('');
 
-            card.innerHTML = heroHtml + temporalHtml + holidayHtml + `<div class="cal-time-list">${rows}</div>`;
+            const arcHtml = buildArc(pt, selectedDate === todayIso, nextPrayer);
+            card.innerHTML = heroHtml + temporalHtml + holidayHtml + arcHtml + `<div class="cal-time-list">${rows}</div>`;
 
             if (!dInfo || !dInfo.hijri_day) fetchTimes(selectedCity, selectedDate);
         } else {
@@ -427,7 +521,7 @@
     /* ---- live clock: tick every second ---- */
     setInterval(() => {
         const el = document.getElementById('cal-live-clock');
-        if (el) el.innerHTML = currentTimeStr();
+        if (el) el.innerHTML = currentTimeStr(el.dataset.tz || '');
     }, 1000);
 
     /* ---- countdown: refresh every minute, full re-render if prayer changed ---- */
